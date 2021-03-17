@@ -26,9 +26,12 @@ void backSpace(){
     vector<vector<wchar_t>> ::iterator prevLine = line;
 
     line --;
-    colItr = line->end();
+    int pos = endItr - beginItr;
     copy(beginItr, endItr, back_inserter(*line));
-    lines.erase(prevLine);
+    line = lines.erase(prevLine);
+    line --;
+    colItr = line->begin() + pos;
+    //lines.shrink_to_fit();
   }
 }
 
@@ -57,7 +60,7 @@ void up(){
 }
 
 void down(){
-  if(line + 1 != lines.begin()){
+  if(line + 1 != lines.end()){
     int pos = colItr - line->begin();
 
     line ++;

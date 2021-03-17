@@ -8,25 +8,59 @@
 #include <SPI.h>
 
 #include <M5Stack.h>
+#include <efontEnableJa.h>
+#include <efontFontData.h>
+
+#define LGFX_M5STACK
+#include <LovyanGFX.hpp>
 
 #include <editor.h>
 
+static LGFX lcd;
+
 void draw(){
-  M5.Lcd.clear(BLACK);
+  lcd.clear(BLACK);
   //M5.Lcd.fillRect(0, (line - lines.begin()) * 16, 320, 16, BLACK);
-  M5.Lcd.setCursor(0,0);
+  lcd.setCursor(0,0);
 
   // == TODO: move to lib ==
-  vector<vector<uint16_t>>::iterator itr;
-  vector<uint16_t>::iterator itr2;
+  vector<vector<wchar_t>>::iterator itr;
+  vector<wchar_t>::iterator itr2;
+  int x = 0 ,y = 0;
   for(itr = lines.begin(); itr != lines.end(); itr ++){
+    x = 0;
     for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
-      M5.Lcd.print((char)*itr2);
+      char u8Ch[4];
+      // convert utf16 -> utf8
+      uint16_t u16Ch = (int16_t)(*itr2);
+      if (u16Ch < 128) {
+        u8Ch[0] = char(u16Ch);
+        u8Ch[1] = 0;
+        u8Ch[2] = 0;
+      } else if (u16Ch < 2048) {
+        u8Ch[0] = 0xC0 | char(u16Ch >> 6);
+        u8Ch[1] = 0x80 | (char(u16Ch) & 0x3F);
+        u8Ch[2] = 0;
+      } else if (u16Ch < 65536) {
+        u8Ch[0] = 0xE0 | char(u16Ch >> 12);
+        u8Ch[1] = 0x80 | (char(u16Ch >> 6) & 0x3F);
+        u8Ch[2] = 0x80 | (char(u16Ch) & 0x3F);
+        u8Ch[3] = 0;
+      }
+
+      lcd.drawString(u8Ch, x, y);
+      x += 16;
     }
-    M5.Lcd.println();
+    y += 16;
   }
-  M5.Lcd.drawRect((colItr - line->begin())*12, (line - lines.begin()) * 16, 12, 16, WHITE);
-  // ====
+  if(shiin1 != 0){
+    lcd.drawChar((char)shiin1, (colItr - line->begin())*8*2, (line - lines.begin()) * 16);
+  }
+  lcd.drawRect((colItr - line->begin())*8*2, (line - lines.begin()) * 16, 12, 16, WHITE);
+  Serial.print("xy:");
+  Serial.print(colItr - line->begin());
+  Serial.print(",");
+  Serial.println(line - lines.begin());
 }
 
 class KbdRptParser : public KeyboardReportParser
@@ -154,7 +188,8 @@ void KbdRptParser::OnKeyPressed(uint8_t c)
   Serial.println((char)c);
   //M5.Lcd.print((char)c);
 
-  onChar(c);
+  onCharRoma(c);
+  //onChar(c);
   draw();
 };
 
@@ -167,8 +202,12 @@ KbdRptParser Prs;
 void setup()
 {
   Serial.begin( 115200 );
-  M5.begin();
-  M5.Lcd.setTextSize(2);
+  //M5.begin();
+  lcd.init();
+  lcd.setTextSize(1, 1);
+  lcd.setTextColor(0xFFFFFFU);
+  lcd.setFont(&fonts::efont);
+  //M5.Lcd.setTextSize(2);
 #if !defined(__MIPSEL__)
   while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
 #endif
@@ -180,11 +219,11 @@ void setup()
   delay( 200 );
 
   HidKeyboard.SetReportParser(0, &Prs);
-  M5.Lcd.println("Start");
+  lcd.println("Start");
 
   initEditor();
 
-  M5.Lcd.clear(BLACK);
+  lcd.clear(BLACK);
   draw();
 }
 
