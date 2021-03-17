@@ -9,19 +9,14 @@
 
 #include <M5Stack.h>
 
-using namespace std;
-
-#include <vector>
-
-vector<vector<uint16_t>> lines;
-
-vector<vector<uint16_t>> ::iterator line;
-vector<uint16_t> ::iterator colItr;
+#include <editor.h>
 
 void draw(){
   M5.Lcd.clear(BLACK);
   //M5.Lcd.fillRect(0, (line - lines.begin()) * 16, 320, 16, BLACK);
   M5.Lcd.setCursor(0,0);
+
+  // == TODO: move to lib ==
   vector<vector<uint16_t>>::iterator itr;
   vector<uint16_t>::iterator itr2;
   for(itr = lines.begin(); itr != lines.end(); itr ++){
@@ -31,6 +26,7 @@ void draw(){
     M5.Lcd.println();
   }
   M5.Lcd.drawRect((colItr - line->begin())*12, (line - lines.begin()) * 16, 12, 16, WHITE);
+  // ====
 }
 
 class KbdRptParser : public KeyboardReportParser
@@ -72,75 +68,37 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
 
   // BS key == 0x2A
   if(key == 0x2A){
-    if(colItr != line->begin()){
-      colItr --;
-      colItr = line->erase(colItr);
-    }else{
-      // marge lines
-      vector<uint16_t> ::iterator beginItr = colItr;
-      vector<uint16_t> ::iterator endItr = line->end();
-      vector<vector<uint16_t>> ::iterator prevLine;
-
-      line --;
-      colItr = line->end();
-      copy(beginItr, endItr, back_inserter(*line));
-      lines.erase(prevLine);
-    }
+    backSpace();
     draw();
     return;
   }
   // <- 0x50
-  if(key == 0x50 && colItr != line->begin()){
-    colItr --;
+  if(key == 0x50){
+    left();
     draw();
     return;
   }
   // -> 0x4F
-  if(key == 0x4F && colItr != line->end()){
-    colItr ++;
+  if(key == 0x4F){
+    right();
     draw();
     return;
   }
   // ^ 0x52
-  if(key == 0x52 && line != lines.begin()){
-    int pos = colItr - line->begin();
-
-    line --;
-    colItr = line->begin();
-    for(;pos != 0 && colItr != line->end(); pos--){
-      colItr ++;
-    }
-
+  if(key == 0x52){
+    up();
     draw();
     return;
   }
   // v 0x51
-  if(key == 0x51 && line + 1 != lines.end()){
-    int pos = colItr - line->begin();
-
-    line ++;
-    colItr = line->begin();
-    for(;pos != 0 && colItr != line->end(); pos--){
-      colItr ++;
-    }
-
-
+  if(key == 0x51){
+    down();
     draw();
     return;
   }
 
   if (c == '\r'){
-    vector<uint16_t> newLine;
-
-    copy(colItr, line->end(), back_inserter(newLine));
-    while(colItr != line->end()){
-      colItr = line->erase(colItr);
-    }
-
-    line ++;
-    line = lines.insert(line, newLine);
-
-    colItr = line->begin();
+    enter();
     draw();
     return;
   }
@@ -196,8 +154,7 @@ void KbdRptParser::OnKeyPressed(uint8_t c)
   Serial.println((char)c);
   //M5.Lcd.print((char)c);
 
-  colItr = line->insert(colItr, (uint16_t)c);
-  colItr ++;
+  onChar(c);
   draw();
 };
 
@@ -225,10 +182,8 @@ void setup()
   HidKeyboard.SetReportParser(0, &Prs);
   M5.Lcd.println("Start");
 
-  line = lines.begin(); // lines
-  //lines.push_back(vector<uint16_t>());
-  line = lines.insert(line, vector<uint16_t>());
-  colItr = line->begin(); // line
+  initEditor();
+
   M5.Lcd.clear(BLACK);
   draw();
 }
