@@ -11,6 +11,7 @@ extern vector<vector<wchar_t>> lines;
 extern vector<vector<wchar_t>> ::iterator line;
 extern vector<wchar_t> ::iterator colItr;
 extern uint8_t shiin1;
+extern uint8_t shiin2;
 
 void initEditor();
 void backSpace();

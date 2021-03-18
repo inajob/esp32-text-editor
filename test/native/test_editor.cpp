@@ -113,6 +113,14 @@ void test_editor_rome_conversion(void){
   onCharRoma('n');
   onCharRoma('n');
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ん', lines.at(0).at(0), "rome ssa");
+
+  backSpace();
+
+  onCharRoma('n');
+  onCharRoma('y');
+  onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'に', lines.at(0).at(0), "rome nya1");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ゃ', lines.at(0).at(1), "rome nya2");
 }
 
 int main(int argc, char **argv){

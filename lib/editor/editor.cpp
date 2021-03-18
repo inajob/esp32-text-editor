@@ -6,6 +6,7 @@ vector<vector<wchar_t>> ::iterator line;
 vector<wchar_t> ::iterator colItr;
 
 uint8_t shiin1 = 0;
+uint8_t shiin2 = 0;
 
 
 void initEditor(){
@@ -105,11 +106,13 @@ wchar_t table[][5] = {
   {L'ざ',L'じ',L'ず',L'ぜ',L'ぞ'},
   {L'だ',L'ぢ',L'づ',L'で',L'ど'},
   {L'ば',L'び',L'ぶ',L'べ',L'ぼ'},
-  {L'ぱ',L'ぴ',L'ぷ',L'ぺ',L'ぽ'}
+  {L'ぱ',L'ぴ',L'ぷ',L'ぺ',L'ぽ'},
+  {L'ゃ',L'ぃ',L'ゅ',L'ぇ',L'ょ'}
 };
 
 void onBoin(uint8_t c){
   uint8_t b = 0;
+  uint8_t pb = 0;
   uint8_t s = 0;
   switch(c){
     case 'a': b = 0; break;
@@ -137,7 +140,17 @@ void onBoin(uint8_t c){
 
   }
   shiin1 = 0;
-  onChar(table[s][b]);
+  switch(shiin2){
+    case 'y':
+      pb = b;
+      b = 1;
+      onChar(table[s][b]);
+      onChar(table[15][pb]);
+      break;
+    case 0:
+      onChar(table[s][b]);
+  }
+  shiin2 = 0;
 }
 void onCharRoma(uint8_t c){
   switch(c){
@@ -166,11 +179,18 @@ void onCharRoma(uint8_t c){
                 if(shiin1 == 'n'){
                   onChar(L'ん');
                   shiin1 = 0;
+                  shiin2 = 0;
                 }else{
                   onChar(L'っ');
                 }
+              }else if(c == 'y'){
+                if(shiin1 != 0){
+                  shiin2 = 'y';
+                }
+              }else{
+                shiin1 = c;
               }
-              shiin1 = c; break;
+              break;
     default: onChar(c);
   }
 }
