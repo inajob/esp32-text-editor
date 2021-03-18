@@ -88,8 +88,36 @@ return;
   TEST_ASSERT_EQUAL_STRING_MESSAGE("abc0123", cstr, "check line0");
 }
 
+void test_editor_rome_conversion(void){
+  lines.clear();
+  initEditor();
+
+  onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'あ', lines.at(0).at(0), "rome a");
+  backSpace();
+
+  onCharRoma('k');
+  onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'か', lines.at(0).at(0), "rome ka");
+
+  backSpace();
+  onCharRoma('s');
+  onCharRoma('s');
+  onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'っ', lines.at(0).at(0), "rome ssa");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'さ', lines.at(0).at(1), "rome ssa");
+
+  backSpace();
+  backSpace();
+
+  onCharRoma('n');
+  onCharRoma('n');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ん', lines.at(0).at(0), "rome ssa");
+}
+
 int main(int argc, char **argv){
   RUN_TEST(test_function_true);
   RUN_TEST(test_editor_init);
   RUN_TEST(test_editor_move_cursor);
+  RUN_TEST(test_editor_rome_conversion);
 }
