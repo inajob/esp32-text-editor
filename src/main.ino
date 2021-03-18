@@ -17,6 +17,7 @@
 #include <editor.h>
 
 static LGFX lcd;
+const int fontSize = 3;
 
 void draw(){
   lcd.clear(BLACK);
@@ -49,14 +50,21 @@ void draw(){
       }
 
       lcd.drawString(u8Ch, x, y);
-      x += 16;
+      x += 16*fontSize;
     }
-    y += 16;
+    y += 16*fontSize;
   }
+  int dx = 0;
   if(shiin1 != 0){
-    lcd.drawChar((char)shiin1, (colItr - line->begin())*8*2, (line - lines.begin()) * 16);
+    lcd.drawChar((char)shiin1, ((colItr - line->begin()) + dx)*16*fontSize, (line - lines.begin()) * 16 * fontSize);
+    dx ++;
   }
-  lcd.drawRect((colItr - line->begin())*8*2, (line - lines.begin()) * 16, 12, 16, WHITE);
+  if(shiin2 != 0){
+    lcd.drawChar((char)shiin2, ((colItr - line->begin()) + dx)*16*fontSize, (line - lines.begin()) * 16 * fontSize);
+    dx ++;
+  }
+
+  lcd.drawRect((colItr - line->begin())*16*fontSize, (line - lines.begin()) * 16 * fontSize, 16*fontSize, 16*fontSize, WHITE);
   Serial.print("xy:");
   Serial.print(colItr - line->begin());
   Serial.print(",");
@@ -204,7 +212,7 @@ void setup()
   Serial.begin( 115200 );
   //M5.begin();
   lcd.init();
-  lcd.setTextSize(1, 1);
+  lcd.setTextSize(fontSize, fontSize);
   lcd.setTextColor(0xFFFFFFU);
   lcd.setFont(&fonts::efont);
   //M5.Lcd.setTextSize(2);
