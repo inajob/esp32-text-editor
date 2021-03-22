@@ -8,39 +8,58 @@ using namespace std;
 #ifndef EDITOR_H
 #define EDITOR_H
 
-extern vector<vector<wchar_t>> lines;
-
-extern vector<vector<wchar_t>> ::iterator line;
-extern vector<wchar_t> ::iterator colItr;
-extern uint8_t shiin1;
-extern uint8_t shiin2;
-extern vector<wchar_t> rawInputs;
-extern vector<wchar_t> ::iterator rawInputsItr;
-extern vector<string> kanjiList;
-
 enum class KanjiMode {
   DIRECT = 0,
   KANJI,
   HENKAN
 };
 
-extern KanjiMode kanjiMode;
-
 uint8_t utf16CharToUtf8(wchar_t utf16, char* utf8);
 size_t utf8CharToUtf16(char* utf8, wchar_t* utf16);
 
-void initEditor();
-void backSpace();
-void right();
-void left();
-void up();
-void down();
-void enter();
-void onChar(wchar_t c);
-void onCharRoma(uint8_t c);
-void onBoin(uint8_t c);
-void setStartKanjiMode();
-void kanjiHenkan();
-void kanjiDecide();
+class Editor{
+  public:
+  vector<vector<wchar_t>> lines;
+  vector<vector<wchar_t>> ::iterator line;
+  vector<wchar_t> ::iterator colItr;
 
+  uint8_t shiin1 = 0;
+  uint8_t shiin2 = 0;
+
+  KanjiMode kanjiMode = KanjiMode::DIRECT;
+  vector<wchar_t> rawInputs;
+  vector<wchar_t> ::iterator rawInputsItr;
+  vector<string> kanjiList;
+
+  virtual void initEditor();
+  virtual void backSpace();
+  virtual void right();
+  virtual void left();
+  virtual void up();
+  virtual void down();
+  virtual void enter();
+  virtual void onChar(wchar_t c);
+  virtual void onCharRoma(uint8_t c);
+  virtual void onBoin(uint8_t c);
+  virtual void setStartKanjiMode();
+  virtual void kanjiHenkan();
+  virtual void kanjiDecide();
+};
+
+class KanjiEditor: public Editor{
+  public:
+  void initEditor();
+  void backSpace();
+  void right();
+  void left();
+  void up();
+  void down();
+  void enter();
+  void onChar(wchar_t c);
+  void onCharRoma(uint8_t c);
+  void onBoin(uint8_t c);
+  void setStartKanjiMode();
+  void kanjiHenkan();
+  void kanjiDecide();
+};
 #endif

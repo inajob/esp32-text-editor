@@ -4,23 +4,24 @@
 #include <string>
 
 using namespace std;
+KanjiEditor editor;
 
 void test_function_true(void){
   TEST_ASSERT_TRUE(true);
 }
 
 int getMaxLines(){
-  return lines.size();
+  return editor.lines.size();
 }
 int getColumnNo(){
-  return colItr - line->begin();
+  return editor.colItr - editor.line->begin();
 }
 int getLineNo(){
-  return line - lines.begin();
+  return editor.line - editor.lines.begin();
 }
 
 void test_editor_init(void){
-  initEditor();
+  editor.initEditor();
   // init lines is 1
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getMaxLines(), "max_lines is 1 in initial");
   // int col is 0
@@ -28,111 +29,111 @@ void test_editor_init(void){
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getLineNo(), "line 0i n initial");
 }
 void test_editor_move_cursor(void){
-  backSpace();
+  editor.backSpace();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getLineNo(), "check line after bs");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getColumnNo(), "check column after bs");
- 
-  onChar('a');
-  onChar('b');
-  onChar('c');
+
+  editor.onChar('a');
+  editor.onChar('b');
+  editor.onChar('c');
   // cursor pos
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "type 3 keys");
-  enter();
+  editor.enter();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "enter");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getColumnNo(), "enter");
 
-  onChar('1');
-  onChar('2');
-  onChar('3');
-  onChar('4');
-  up();
+  editor.onChar('1');
+  editor.onChar('2');
+  editor.onChar('3');
+  editor.onChar('4');
+  editor.up();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "type 4 keys in next line and up");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getLineNo(), "check line after up");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "check column after up");
-  down();
+  editor.down();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after down");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "check column after down");
 
-  right();
+  editor.right();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after right");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(4, getColumnNo(), "check column after right");
 
-  right();
+  editor.right();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after over right");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(4, getColumnNo(), "check column after over right");
 
-  backSpace();
+  editor.backSpace();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after back-space");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "check cloumn after back-space");
 
-  right();
+  editor.right();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after back-space and right");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "check line after back-space and right");
 
-  left();
+  editor.left();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after left");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(2,getColumnNo(), "check line after left");
 
-  left();
-  left();
-  left();
+  editor.left();
+  editor.left();
+  editor.left();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after over left");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getColumnNo(), "check line after over left");
 
-  onChar('0');
+  editor.onChar('0');
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "check line after insert char");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1,getColumnNo(), "check line after insert char");
 
-  left();
-  backSpace();
+  editor.left();
+  editor.backSpace();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getLineNo(), "check line after merge line");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "check column after merge line");
 
-  string stdString(lines.at(0).begin(),lines.at(0).end());
+  string stdString(editor.lines.at(0).begin(),editor.lines.at(0).end());
   const char *cstr = stdString.c_str();
   TEST_ASSERT_EQUAL_STRING_MESSAGE("abc0123", cstr, "check line0");
 }
 
 void test_editor_rome_conversion(void){
-  lines.clear();
-  initEditor();
+  editor.lines.clear();
+  editor.initEditor();
 
-  onCharRoma('a');
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'あ', lines.at(0).at(0), "rome a");
-  backSpace();
+  editor.onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'あ', editor.lines.at(0).at(0), "rome a");
+  editor.backSpace();
 
-  onCharRoma('k');
-  onCharRoma('a');
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'か', lines.at(0).at(0), "rome ka");
+  editor.onCharRoma('k');
+  editor.onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'か', editor.lines.at(0).at(0), "rome ka");
 
-  backSpace();
-  onCharRoma('s');
-  onCharRoma('s');
-  onCharRoma('a');
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'っ', lines.at(0).at(0), "rome ssa");
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'さ', lines.at(0).at(1), "rome ssa");
+  editor.backSpace();
+  editor.onCharRoma('s');
+  editor.onCharRoma('s');
+  editor.onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'っ', editor.lines.at(0).at(0), "rome ssa");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'さ', editor.lines.at(0).at(1), "rome ssa");
 
-  backSpace();
-  backSpace();
+  editor.backSpace();
+  editor.backSpace();
 
-  onCharRoma('n');
-  onCharRoma('n');
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ん', lines.at(0).at(0), "rome nn");
+  editor.onCharRoma('n');
+  editor.onCharRoma('n');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ん', editor.lines.at(0).at(0), "rome nn");
 
-  backSpace();
+  editor.backSpace();
 
-  onCharRoma('y');
-  onCharRoma('a');
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'や', lines.at(0).at(0), "rome ya");
+  editor.onCharRoma('y');
+  editor.onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'や', editor.lines.at(0).at(0), "rome ya");
 
-  backSpace();
+  editor.backSpace();
 
 
-  onCharRoma('n');
-  onCharRoma('y');
-  onCharRoma('a');
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'に', lines.at(0).at(0), "rome nya1");
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ゃ', lines.at(0).at(1), "rome nya2");
+  editor.onCharRoma('n');
+  editor.onCharRoma('y');
+  editor.onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'に', editor.lines.at(0).at(0), "rome nya1");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ゃ', editor.lines.at(0).at(1), "rome nya2");
 }
 
 void test_dicttool_search(){

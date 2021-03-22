@@ -1,26 +1,13 @@
 #include <editor.h>
 
-vector<vector<wchar_t>> lines;
-
-vector<vector<wchar_t>> ::iterator line;
-vector<wchar_t> ::iterator colItr;
-
-uint8_t shiin1 = 0;
-uint8_t shiin2 = 0;
-
-KanjiMode kanjiMode = KanjiMode::DIRECT;
-vector<wchar_t> rawInputs;
-vector<wchar_t> ::iterator rawInputsItr;
-vector<string> kanjiList;
-
-void initEditor(){
+void Editor::initEditor(){
   line = lines.begin(); // lines
   //lines.push_back(vector<wchar_t>());
   line = lines.insert(line, vector<wchar_t>());
   colItr = line->begin(); // line
 }
 
-void backSpace(){
+void Editor::backSpace(){
   if(kanjiMode == KanjiMode::DIRECT){
     if(colItr != line->begin()){
       colItr --;
@@ -50,19 +37,19 @@ void backSpace(){
   }
 }
 
-void left(){
+void Editor::left(){
   if(colItr != line->begin()){
     colItr --;
   }
 }
 
-void right(){
+void Editor::right(){
   if(colItr != line->end()){
     colItr ++;
   }
 }
 
-void up(){
+void Editor::up(){
   if(line != lines.begin()){
     int pos = colItr - line->begin();
 
@@ -74,7 +61,7 @@ void up(){
   }
 }
 
-void down(){
+void Editor::down(){
   if(line + 1 != lines.end()){
     int pos = colItr - line->begin();
 
@@ -86,7 +73,7 @@ void down(){
   }
 }
 
-void enter(){
+void Editor::enter(){
   vector<wchar_t> newLine;
 
   copy(colItr, line->end(), back_inserter(newLine));
@@ -100,7 +87,7 @@ void enter(){
   colItr = line->begin();
 }
 
-void onChar(wchar_t c){
+void Editor::onChar(wchar_t c){
   if(kanjiMode == KanjiMode::DIRECT){
     colItr = line->insert(colItr, c);
     colItr ++;
@@ -129,7 +116,7 @@ wchar_t table[][5] = {
   {L'ゃ',L'ぃ',L'ゅ',L'ぇ',L'ょ'}
 };
 
-void onBoin(uint8_t c){
+void Editor::onBoin(uint8_t c){
   uint8_t b = 0;
   uint8_t pb = 0;
   uint8_t s = 0;
@@ -171,7 +158,7 @@ void onBoin(uint8_t c){
   }
   shiin2 = 0;
 }
-void onCharRoma(uint8_t c){
+void Editor::onCharRoma(uint8_t c){
   switch(c){
     case 'a':
     case 'i':
@@ -287,12 +274,12 @@ size_t utf8CharToUtf16(char* utf8, wchar_t* utf16){
   return numBytes;
 }
 
-void setStartKanjiMode(){
+void Editor::setStartKanjiMode(){
   kanjiMode = KanjiMode::KANJI;
   rawInputs.clear();
   rawInputsItr = rawInputs.begin();
 }
-void kanjiHenkan(){
+void Editor::kanjiHenkan(){
   kanjiMode = KanjiMode::HENKAN;
   char target[256]; // TODO: check length
   uint16_t pos = 0;
@@ -305,7 +292,7 @@ void kanjiHenkan(){
   search(target, &kanjiList, "/SKK-JISYO.S.txt");
 
 }
-void kanjiDecide(){
+void Editor::kanjiDecide(){
   kanjiMode = KanjiMode::DIRECT;
   if(!kanjiList.empty()){
     string kanji = kanjiList.at(0); // TODO: switch others
@@ -326,4 +313,44 @@ void kanjiDecide(){
   }
   rawInputs.clear();
   rawInputsItr = rawInputs.begin();
+}
+
+void KanjiEditor::initEditor(){
+  Editor::initEditor();
+}
+void KanjiEditor::backSpace(){
+  Editor::backSpace();
+}
+void KanjiEditor::right(){
+  Editor::right();
+}
+void KanjiEditor::left(){
+  Editor::left();
+}
+void KanjiEditor::up(){
+  Editor::up();
+}
+void KanjiEditor::down(){
+  Editor::down();
+}
+void KanjiEditor::enter(){
+  Editor::enter();
+}
+void KanjiEditor::onChar(wchar_t c){
+  Editor::onChar(c);
+}
+void KanjiEditor::onCharRoma(uint8_t c){
+  Editor::onCharRoma(c);
+}
+void KanjiEditor::onBoin(uint8_t c){
+  Editor::onBoin(c);
+}
+void KanjiEditor::setStartKanjiMode(){
+  Editor::setStartKanjiMode();
+}
+void KanjiEditor::kanjiHenkan(){
+  Editor::kanjiHenkan();
+}
+void KanjiEditor::kanjiDecide(){
+  Editor::kanjiDecide();
 }
