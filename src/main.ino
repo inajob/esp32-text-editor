@@ -7,6 +7,8 @@
 #endif
 #include <SPI.h>
 
+#include <SPIFFS.h>
+
 #include <M5Stack.h>
 #include <efontEnableJa.h>
 #include <efontFontData.h>
@@ -27,41 +29,34 @@ void draw(){
   // == TODO: move to lib ==
   vector<vector<wchar_t>>::iterator itr;
   vector<wchar_t>::iterator itr2;
-  int x = 0 ,y = 0;
+  int x = 0 ,y = -16*fontSize;
   for(itr = lines.begin(); itr != lines.end(); itr ++){
     x = 0;
+    y += 16*fontSize;
     for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
-      char u8Ch[4];
-      // convert utf16 -> utf8
-      uint16_t u16Ch = (int16_t)(*itr2);
-      if (u16Ch < 128) {
-        u8Ch[0] = char(u16Ch);
-        u8Ch[1] = 0;
-        u8Ch[2] = 0;
-      } else if (u16Ch < 2048) {
-        u8Ch[0] = 0xC0 | char(u16Ch >> 6);
-        u8Ch[1] = 0x80 | (char(u16Ch) & 0x3F);
-        u8Ch[2] = 0;
-      } else if (u16Ch < 65536) {
-        u8Ch[0] = 0xE0 | char(u16Ch >> 12);
-        u8Ch[1] = 0x80 | (char(u16Ch >> 6) & 0x3F);
-        u8Ch[2] = 0x80 | (char(u16Ch) & 0x3F);
-        u8Ch[3] = 0;
-      }
-
-      lcd.drawString(u8Ch, x, y);
+      char utf8[4];
+      utf16CharToUtf8(*itr2, utf8);
+      lcd.drawString(utf8, x, y);
       x += 16*fontSize;
     }
-    y += 16*fontSize;
   }
-  int dx = 0;
-  if(shiin1 != 0){
-    lcd.drawChar((char)shiin1, ((colItr - line->begin()) + dx)*16*fontSize, (line - lines.begin()) * 16 * fontSize);
-    dx ++;
+  bool hasRawInputs = false;
+  for(itr2 = rawInputs.begin(); itr2 != rawInputs.end(); itr2 ++){
+    char utf8[4];
+    utf16CharToUtf8(*itr2, utf8);
+    lcd.drawString(utf8, x, y);
+    x += 16*fontSize;
+    hasRawInputs = true;
   }
-  if(shiin2 != 0){
-    lcd.drawChar((char)shiin2, ((colItr - line->begin()) + dx)*16*fontSize, (line - lines.begin()) * 16 * fontSize);
-    dx ++;
+  if(!hasRawInputs){
+    if(shiin1 != 0){
+      lcd.drawChar((char)shiin1, x, y);
+      x += 16*fontSize;
+    }
+    if(shiin2 != 0){
+      lcd.drawChar((char)shiin2, x, y);
+      x += 16*fontSize;
+    }
   }
 
   lcd.drawRect((colItr - line->begin())*16*fontSize, (line - lines.begin()) * 16 * fontSize, 16*fontSize, 16*fontSize, WHITE);
@@ -144,8 +139,37 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
     draw();
     return;
   }
-  if (c)
-    OnKeyPressed(c);
+  if (c){
+    uint8_t shift = (mod & 0x22);
+    //OnKeyPressed(c); // no use now
+    if(shift){
+      if(kanjiMode == KanjiMode::DIRECT){
+        setStartKanjiMode();
+        onCharRoma(tolower(c));
+      }else if(kanjiMode == KanjiMode::KANJI){
+        onCharRoma(tolower(c)); // only in shiin
+        rawInputsItr = rawInputs.insert(rawInputsItr, tolower(c));
+        rawInputsItr ++;
+        kanjiHenkan();
+      }
+      draw();
+    }else{
+      if(kanjiMode == KanjiMode::HENKAN){
+        kanjiDecide();
+        onCharRoma(c);
+      }else if(kanjiMode == KanjiMode::KANJI){
+        if(c == ' '){
+          kanjiHenkan();
+        }else{
+        onCharRoma(c);
+        }
+      }else{
+        onCharRoma(c);
+        //onChar(c);
+      }
+      draw();
+    }
+  }
 }
 
 void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
@@ -192,6 +216,7 @@ void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
 
 void KbdRptParser::OnKeyPressed(uint8_t c)
 {
+ /* no use */
   Serial.print("ASCII: ");
   Serial.println((char)c);
   //M5.Lcd.print((char)c);
@@ -211,6 +236,7 @@ void setup()
 {
   Serial.begin( 115200 );
   //M5.begin();
+  SPIFFS.begin();
   lcd.init();
   lcd.setTextSize(fontSize, fontSize);
   lcd.setTextColor(0xFFFFFFU);

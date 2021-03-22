@@ -8,6 +8,10 @@ vector<wchar_t> ::iterator colItr;
 uint8_t shiin1 = 0;
 uint8_t shiin2 = 0;
 
+KanjiMode kanjiMode = KanjiMode::DIRECT;
+vector<wchar_t> rawInputs;
+vector<wchar_t> ::iterator rawInputsItr;
+vector<string> kanjiList;
 
 void initEditor(){
   line = lines.begin(); // lines
@@ -17,22 +21,32 @@ void initEditor(){
 }
 
 void backSpace(){
-  if(colItr != line->begin()){
-    colItr --;
-    colItr = line->erase(colItr);
-  }else{
-    // marge lines
-    vector<wchar_t> ::iterator beginItr = colItr;
-    vector<wchar_t> ::iterator endItr = line->end();
-    vector<vector<wchar_t>> ::iterator prevLine = line;
+  if(kanjiMode == KanjiMode::DIRECT){
+    if(colItr != line->begin()){
+      colItr --;
+      colItr = line->erase(colItr);
+    }else{
+      if(line == lines.begin())return;
+      // marge lines
+      vector<wchar_t> ::iterator beginItr = colItr;
+      vector<wchar_t> ::iterator endItr = line->end();
+      vector<vector<wchar_t>> ::iterator prevLine = line;
 
-    line --;
-    int pos = endItr - beginItr;
-    copy(beginItr, endItr, back_inserter(*line));
-    line = lines.erase(prevLine);
-    line --;
-    colItr = line->begin() + pos;
-    //lines.shrink_to_fit();
+      line --;
+      int pos = line->end() - line->begin();
+      copy(beginItr, endItr, back_inserter(*line));
+      line = lines.erase(prevLine);
+      line --;
+      colItr = line->begin() + pos;
+      //lines.shrink_to_fit();
+    }
+  }else if(kanjiMode == KanjiMode::KANJI){
+    if(rawInputsItr != rawInputs.begin()){
+      rawInputsItr --;
+    }else{
+      // cancel KANJI MODE
+      kanjiMode = KanjiMode::DIRECT;
+    }
   }
 }
 
@@ -87,8 +101,13 @@ void enter(){
 }
 
 void onChar(wchar_t c){
-  colItr = line->insert(colItr, c);
-  colItr ++;
+  if(kanjiMode == KanjiMode::DIRECT){
+    colItr = line->insert(colItr, c);
+    colItr ++;
+  }else if(kanjiMode == KanjiMode::KANJI){
+    rawInputsItr = rawInputs.insert(rawInputsItr, c);
+    rawInputsItr ++;
+  }
 }
 
 wchar_t table[][5] = {
@@ -183,14 +202,128 @@ void onCharRoma(uint8_t c){
                 }else{
                   onChar(L'っ');
                 }
-              }else if(c == 'y'){
-                if(shiin1 != 0){
-                  shiin2 = 'y';
-                }
+              }else if(c == 'y' && shiin1 != 0){
+                shiin2 = 'y';
               }else{
                 shiin1 = c;
               }
               break;
     default: onChar(c);
   }
+}
+
+uint8_t utf16CharToUtf8(wchar_t utf16, char* utf8){
+  uint8_t len = 0;
+  if (utf16 < 128) {
+    utf8[0] = char(utf16);
+    utf8[1] = 0;
+    utf8[2] = 0;
+    len = 1;
+  } else if (utf16 < 2048) {
+    utf8[0] = 0xC0 | char(utf16 >> 6);
+    utf8[1] = 0x80 | (char(utf16) & 0x3F);
+    utf8[2] = 0;
+    len = 2;
+  } else if (utf16 < 65536) {
+    utf8[0] = 0xE0 | char(utf16 >> 12);
+    utf8[1] = 0x80 | (char(utf16 >> 6) & 0x3F);
+    utf8[2] = 0x80 | (char(utf16) & 0x3F);
+    utf8[3] = 0;
+    len = 3;
+  }
+  return len;
+}
+
+int GetUtf8ByteCount(char c) {
+    if (0 <= uint8_t(c) && uint8_t(c) < 0x80) {
+        return 1;
+    }
+    if (0xC2 <= uint8_t(c) && uint8_t(c) < 0xE0) {
+        return 2;
+    }
+    if (0xE0 <= uint8_t(c) && uint8_t(c) < 0xF0) {
+        return 3;
+    }
+    if (0xF0 <= uint8_t(c) && uint8_t(c) < 0xF8) {
+        return 4; // not support yet
+    }
+    return 0;
+}
+
+size_t utf8CharToUtf16(char* utf8, wchar_t* utf16){
+  int numBytes = GetUtf8ByteCount(utf8[0]);
+  if (numBytes == 0) {
+    return 0;
+  }
+  switch (numBytes) {
+    case 1:
+      *utf16 = wchar_t(uint8_t(utf8[0]));
+      break;
+    case 2:
+      if ((uint8_t(utf8[0]) & 0x1E) == 0) {
+        return 0;
+      }
+
+      *utf16 = wchar_t(utf8[0] & 0x1F) << 6;
+      *utf16 |= wchar_t(utf8[1] & 0x3F);
+      break;
+    case 3:
+      if ((uint8_t(utf8[0]) & 0x0F) == 0 &&
+          (uint8_t(utf8[1]) & 0x20) == 0) {
+        return 0;
+      }
+
+      *utf16 = wchar_t(utf8[0] & 0x0F) << 12;
+      *utf16 |= wchar_t(utf8[1] & 0x3F) << 6;
+      *utf16 |= wchar_t(utf8[2] & 0x3F);
+      break;
+    case 4:
+      // not implement
+      break;
+    default:
+      return 0;
+  }
+
+  return numBytes;
+}
+
+void setStartKanjiMode(){
+  kanjiMode = KanjiMode::KANJI;
+  rawInputs.clear();
+  rawInputsItr = rawInputs.begin();
+}
+void kanjiHenkan(){
+  kanjiMode = KanjiMode::HENKAN;
+  char target[256]; // TODO: check length
+  uint16_t pos = 0;
+  for(vector<wchar_t>::iterator itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
+    uint8_t len = utf16CharToUtf8(*itr, &target[pos]);
+    pos += len;
+  }
+  target[pos] = 0; // null terminate
+
+  search(target, &kanjiList, "/SKK-JISYO.S.txt");
+
+}
+void kanjiDecide(){
+  kanjiMode = KanjiMode::DIRECT;
+  if(!kanjiList.empty()){
+    string kanji = kanjiList.at(0); // TODO: switch others
+    const char* p = kanji.c_str();
+    while(*p != 0){
+      wchar_t utf16;
+      size_t n = utf8CharToUtf16((char*)p, &utf16);
+      onChar(utf16);
+      p += n;
+    }
+    kanjiList.clear();
+  }else{
+    // copy rawInputs to line
+    vector<wchar_t>::iterator itr;
+    for(itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
+      onChar(*itr);
+    }
+  }
+  rawInputs.clear();
+  rawInputsItr = rawInputs.begin();
 }

@@ -1,5 +1,6 @@
 #include <unity.h>
 #include <editor.h>
+#include <dicttool.h>
 #include <string>
 
 using namespace std;
@@ -27,6 +28,10 @@ void test_editor_init(void){
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getLineNo(), "line 0i n initial");
 }
 void test_editor_move_cursor(void){
+  backSpace();
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getLineNo(), "check line after bs");
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getColumnNo(), "check column after bs");
+ 
   onChar('a');
   onChar('b');
   onChar('c');
@@ -35,7 +40,7 @@ void test_editor_move_cursor(void){
   enter();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getLineNo(), "enter");
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getColumnNo(), "enter");
-return;
+
   onChar('1');
   onChar('2');
   onChar('3');
@@ -81,7 +86,7 @@ return;
   left();
   backSpace();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, getLineNo(), "check line after merge line");
-  TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "check line after merge line");
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(3, getColumnNo(), "check column after merge line");
 
   string stdString(lines.at(0).begin(),lines.at(0).end());
   const char *cstr = stdString.c_str();
@@ -112,9 +117,16 @@ void test_editor_rome_conversion(void){
 
   onCharRoma('n');
   onCharRoma('n');
-  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ん', lines.at(0).at(0), "rome ssa");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ん', lines.at(0).at(0), "rome nn");
 
   backSpace();
+
+  onCharRoma('y');
+  onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'や', lines.at(0).at(0), "rome ya");
+
+  backSpace();
+
 
   onCharRoma('n');
   onCharRoma('y');
@@ -123,9 +135,33 @@ void test_editor_rome_conversion(void){
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ゃ', lines.at(0).at(1), "rome nya2");
 }
 
+void test_dicttool_search(){
+  vector<string> results;
+  search("わるs", &results,"data/SKK-JISYO.S.txt");
+  //printf("result: %s", results);
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("悪", results.at(0).c_str(), "check result");
+
+  results.clear();
+  search("れき", &results,"data/SKK-JISYO.S.txt");
+  //printf("result: %x\n", results.at(0).c_str()[0]);
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("歴", results.at(0).c_str(), "check result2");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("暦", results.at(1).c_str(), "check result2-2");
+
+  results.clear();
+  search("わん", &results,"data/SKK-JISYO.S.txt");
+  //printf("result: %s", results);
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("腕", results.at(0).c_str(), "check result3");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("碗", results.at(1).c_str(), "check result3-2");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("湾", results.at(2).c_str(), "check result3-3");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("椀", results.at(3).c_str(), "check result3-4");
+}
+
+
 int main(int argc, char **argv){
   RUN_TEST(test_function_true);
   RUN_TEST(test_editor_init);
   RUN_TEST(test_editor_move_cursor);
   RUN_TEST(test_editor_rome_conversion);
+
+  RUN_TEST(test_dicttool_search);
 }
