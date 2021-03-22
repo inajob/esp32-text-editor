@@ -23,13 +23,9 @@ class Editor{
   vector<vector<wchar_t>> ::iterator line;
   vector<wchar_t> ::iterator colItr;
 
-  uint8_t shiin1 = 0;
-  uint8_t shiin2 = 0;
-
-  KanjiMode kanjiMode = KanjiMode::DIRECT;
-  vector<wchar_t> rawInputs;
-  vector<wchar_t> ::iterator rawInputsItr;
-  vector<string> kanjiList;
+  KanjiMode kanjiMode = KanjiMode::DIRECT; // TODO: move
+  vector<wchar_t> rawInputs; // TODO: move
+  vector<wchar_t> ::iterator rawInputsItr; //TODO: move
 
   virtual void initEditor();
   virtual void backSpace();
@@ -39,15 +35,14 @@ class Editor{
   virtual void down();
   virtual void enter();
   virtual void onChar(wchar_t c);
-  virtual void onCharRoma(uint8_t c);
-  virtual void onBoin(uint8_t c);
-  virtual void setStartKanjiMode();
-  virtual void kanjiHenkan();
-  virtual void kanjiDecide();
 };
 
 class KanjiEditor: public Editor{
   public:
+  uint8_t shiin1 = 0;
+  uint8_t shiin2 = 0;
+  vector<string> kanjiList;
+
   void initEditor();
   void backSpace();
   void right();

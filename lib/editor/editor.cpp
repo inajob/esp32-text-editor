@@ -116,89 +116,6 @@ wchar_t table[][5] = {
   {L'ゃ',L'ぃ',L'ゅ',L'ぇ',L'ょ'}
 };
 
-void Editor::onBoin(uint8_t c){
-  uint8_t b = 0;
-  uint8_t pb = 0;
-  uint8_t s = 0;
-  switch(c){
-    case 'a': b = 0; break;
-    case 'i': b = 1; break;
-    case 'u': b = 2; break;
-    case 'e': b = 3; break;
-    case 'o': b = 4; break;
-  }
-  switch(shiin1){
-    case 0: s = 0; break;
-    case 'k': s = 1; break;
-    case 's': s = 2; break;
-    case 't': s = 3; break;
-    case 'n': s = 4; break;
-    case 'h': s = 5; break;
-    case 'm': s = 6; break;
-    case 'y': s = 7; break;
-    case 'r': s = 8; break;
-    case 'w': s = 9; break;
-    case 'g': s = 10; break;
-    case 'z': s = 11; break;
-    case 'd': s = 12; break;
-    case 'b': s = 13; break;
-    case 'p': s = 14; break;
-
-  }
-  shiin1 = 0;
-  switch(shiin2){
-    case 'y':
-      pb = b;
-      b = 1;
-      onChar(table[s][b]);
-      onChar(table[15][pb]);
-      break;
-    case 0:
-      onChar(table[s][b]);
-  }
-  shiin2 = 0;
-}
-void Editor::onCharRoma(uint8_t c){
-  switch(c){
-    case 'a':
-    case 'i':
-    case 'u':
-    case 'e':
-    case 'o':
-              onBoin(c);
-              break;
-    case 'k':
-    case 's':
-    case 't':
-    case 'n':
-    case 'h':
-    case 'm':
-    case 'y':
-    case 'r':
-    case 'w':
-    case 'g':
-    case 'z':
-    case 'd':
-    case 'b':
-    case 'p':
-              if(shiin1 == c){
-                if(shiin1 == 'n'){
-                  onChar(L'ん');
-                  shiin1 = 0;
-                  shiin2 = 0;
-                }else{
-                  onChar(L'っ');
-                }
-              }else if(c == 'y' && shiin1 != 0){
-                shiin2 = 'y';
-              }else{
-                shiin1 = c;
-              }
-              break;
-    default: onChar(c);
-  }
-}
-
 uint8_t utf16CharToUtf8(wchar_t utf16, char* utf8){
   uint8_t len = 0;
   if (utf16 < 128) {
@@ -274,47 +191,6 @@ size_t utf8CharToUtf16(char* utf8, wchar_t* utf16){
   return numBytes;
 }
 
-void Editor::setStartKanjiMode(){
-  kanjiMode = KanjiMode::KANJI;
-  rawInputs.clear();
-  rawInputsItr = rawInputs.begin();
-}
-void Editor::kanjiHenkan(){
-  kanjiMode = KanjiMode::HENKAN;
-  char target[256]; // TODO: check length
-  uint16_t pos = 0;
-  for(vector<wchar_t>::iterator itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
-    uint8_t len = utf16CharToUtf8(*itr, &target[pos]);
-    pos += len;
-  }
-  target[pos] = 0; // null terminate
-
-  search(target, &kanjiList, "/SKK-JISYO.S.txt");
-
-}
-void Editor::kanjiDecide(){
-  kanjiMode = KanjiMode::DIRECT;
-  if(!kanjiList.empty()){
-    string kanji = kanjiList.at(0); // TODO: switch others
-    const char* p = kanji.c_str();
-    while(*p != 0){
-      wchar_t utf16;
-      size_t n = utf8CharToUtf16((char*)p, &utf16);
-      onChar(utf16);
-      p += n;
-    }
-    kanjiList.clear();
-  }else{
-    // copy rawInputs to line
-    vector<wchar_t>::iterator itr;
-    for(itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
-      onChar(*itr);
-    }
-  }
-  rawInputs.clear();
-  rawInputsItr = rawInputs.begin();
-}
-
 void KanjiEditor::initEditor(){
   Editor::initEditor();
 }
@@ -339,18 +215,130 @@ void KanjiEditor::enter(){
 void KanjiEditor::onChar(wchar_t c){
   Editor::onChar(c);
 }
+
 void KanjiEditor::onCharRoma(uint8_t c){
-  Editor::onCharRoma(c);
+  switch(c){
+    case 'a':
+    case 'i':
+    case 'u':
+    case 'e':
+    case 'o':
+              onBoin(c);
+              break;
+    case 'k':
+    case 's':
+    case 't':
+    case 'n':
+    case 'h':
+    case 'm':
+    case 'y':
+    case 'r':
+    case 'w':
+    case 'g':
+    case 'z':
+    case 'd':
+    case 'b':
+    case 'p':
+              if(shiin1 == c){
+                if(shiin1 == 'n'){
+                  onChar(L'ん');
+                  shiin1 = 0;
+                  shiin2 = 0;
+                }else{
+                  onChar(L'っ');
+                }
+              }else if(c == 'y' && shiin1 != 0){
+                shiin2 = 'y';
+              }else{
+                shiin1 = c;
+              }
+              break;
+    default: onChar(c);
+  }
 }
+
 void KanjiEditor::onBoin(uint8_t c){
-  Editor::onBoin(c);
+  uint8_t b = 0;
+  uint8_t pb = 0;
+  uint8_t s = 0;
+  switch(c){
+    case 'a': b = 0; break;
+    case 'i': b = 1; break;
+    case 'u': b = 2; break;
+    case 'e': b = 3; break;
+    case 'o': b = 4; break;
+  }
+  switch(shiin1){
+    case 0: s = 0; break;
+    case 'k': s = 1; break;
+    case 's': s = 2; break;
+    case 't': s = 3; break;
+    case 'n': s = 4; break;
+    case 'h': s = 5; break;
+    case 'm': s = 6; break;
+    case 'y': s = 7; break;
+    case 'r': s = 8; break;
+    case 'w': s = 9; break;
+    case 'g': s = 10; break;
+    case 'z': s = 11; break;
+    case 'd': s = 12; break;
+    case 'b': s = 13; break;
+    case 'p': s = 14; break;
+
+  }
+  shiin1 = 0;
+  switch(shiin2){
+    case 'y':
+      pb = b;
+      b = 1;
+      onChar(table[s][b]);
+      onChar(table[15][pb]);
+      break;
+    case 0:
+      onChar(table[s][b]);
+  }
+  shiin2 = 0;
 }
+
 void KanjiEditor::setStartKanjiMode(){
-  Editor::setStartKanjiMode();
+  kanjiMode = KanjiMode::KANJI;
+  rawInputs.clear();
+  rawInputsItr = rawInputs.begin();
 }
+
 void KanjiEditor::kanjiHenkan(){
-  Editor::kanjiHenkan();
+  kanjiMode = KanjiMode::HENKAN;
+  char target[256]; // TODO: check length
+  uint16_t pos = 0;
+  for(vector<wchar_t>::iterator itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
+    uint8_t len = utf16CharToUtf8(*itr, &target[pos]);
+    pos += len;
+  }
+  target[pos] = 0; // null terminate
+
+  search(target, &kanjiList, "/SKK-JISYO.S.txt");
+
 }
 void KanjiEditor::kanjiDecide(){
-  Editor::kanjiDecide();
+  kanjiMode = KanjiMode::DIRECT;
+  if(!kanjiList.empty()){
+    string kanji = kanjiList.at(0); // TODO: switch others
+    const char* p = kanji.c_str();
+    while(*p != 0){
+      wchar_t utf16;
+      size_t n = utf8CharToUtf16((char*)p, &utf16);
+      onChar(utf16);
+      p += n;
+    }
+    kanjiList.clear();
+  }else{
+    // copy rawInputs to line
+    vector<wchar_t>::iterator itr;
+    for(itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
+      onChar(*itr);
+    }
+  }
+  rawInputs.clear();
+  rawInputsItr = rawInputs.begin();
 }
+
