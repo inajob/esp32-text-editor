@@ -16,16 +16,13 @@ enum class KanjiMode {
 
 uint8_t utf16CharToUtf8(wchar_t utf16, char* utf8);
 size_t utf8CharToUtf16(char* utf8, wchar_t* utf16);
+// TODO: GetUtf8ByteCount
 
 class Editor{
   public:
   vector<vector<wchar_t>> lines;
   vector<vector<wchar_t>> ::iterator line;
   vector<wchar_t> ::iterator colItr;
-
-  KanjiMode kanjiMode = KanjiMode::DIRECT; // TODO: move
-  vector<wchar_t> rawInputs; // TODO: move
-  vector<wchar_t> ::iterator rawInputsItr; //TODO: move
 
   virtual void initEditor();
   virtual void backSpace();
@@ -39,9 +36,14 @@ class Editor{
 
 class KanjiEditor: public Editor{
   public:
+  KanjiMode kanjiMode = KanjiMode::DIRECT;
   uint8_t shiin1 = 0;
   uint8_t shiin2 = 0;
   vector<string> kanjiList;
+  vector<wchar_t> rawInputs;
+  vector<wchar_t> ::iterator rawInputsItr;
+
+  // TODO: table
 
   void initEditor();
   void backSpace();

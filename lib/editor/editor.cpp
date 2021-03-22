@@ -2,38 +2,28 @@
 
 void Editor::initEditor(){
   line = lines.begin(); // lines
-  //lines.push_back(vector<wchar_t>());
   line = lines.insert(line, vector<wchar_t>());
   colItr = line->begin(); // line
 }
 
 void Editor::backSpace(){
-  if(kanjiMode == KanjiMode::DIRECT){
-    if(colItr != line->begin()){
-      colItr --;
-      colItr = line->erase(colItr);
-    }else{
-      if(line == lines.begin())return;
-      // marge lines
-      vector<wchar_t> ::iterator beginItr = colItr;
-      vector<wchar_t> ::iterator endItr = line->end();
-      vector<vector<wchar_t>> ::iterator prevLine = line;
+  if(colItr != line->begin()){
+    colItr --;
+    colItr = line->erase(colItr);
+  }else{
+    if(line == lines.begin())return;
+    // marge lines
+    vector<wchar_t> ::iterator beginItr = colItr;
+    vector<wchar_t> ::iterator endItr = line->end();
+    vector<vector<wchar_t>> ::iterator prevLine = line;
 
-      line --;
-      int pos = line->end() - line->begin();
-      copy(beginItr, endItr, back_inserter(*line));
-      line = lines.erase(prevLine);
-      line --;
-      colItr = line->begin() + pos;
-      //lines.shrink_to_fit();
-    }
-  }else if(kanjiMode == KanjiMode::KANJI){
-    if(rawInputsItr != rawInputs.begin()){
-      rawInputsItr --;
-    }else{
-      // cancel KANJI MODE
-      kanjiMode = KanjiMode::DIRECT;
-    }
+    line --;
+    int pos = line->end() - line->begin();
+    copy(beginItr, endItr, back_inserter(*line));
+    line = lines.erase(prevLine);
+    line --;
+    colItr = line->begin() + pos;
+    //lines.shrink_to_fit();
   }
 }
 
@@ -88,13 +78,8 @@ void Editor::enter(){
 }
 
 void Editor::onChar(wchar_t c){
-  if(kanjiMode == KanjiMode::DIRECT){
-    colItr = line->insert(colItr, c);
-    colItr ++;
-  }else if(kanjiMode == KanjiMode::KANJI){
-    rawInputsItr = rawInputs.insert(rawInputsItr, c);
-    rawInputsItr ++;
-  }
+  colItr = line->insert(colItr, c);
+  colItr ++;
 }
 
 wchar_t table[][5] = {
@@ -195,7 +180,16 @@ void KanjiEditor::initEditor(){
   Editor::initEditor();
 }
 void KanjiEditor::backSpace(){
-  Editor::backSpace();
+  if(kanjiMode == KanjiMode::DIRECT){
+    Editor::backSpace();
+  }else if(kanjiMode == KanjiMode::KANJI){
+    if(rawInputsItr != rawInputs.begin()){
+      rawInputsItr --;
+    }else{
+      // cancel KANJI MODE
+      kanjiMode = KanjiMode::DIRECT;
+    }
+  }
 }
 void KanjiEditor::right(){
   Editor::right();
@@ -213,7 +207,12 @@ void KanjiEditor::enter(){
   Editor::enter();
 }
 void KanjiEditor::onChar(wchar_t c){
-  Editor::onChar(c);
+  if(kanjiMode == KanjiMode::DIRECT){
+    Editor::onChar(c);
+  }else if(kanjiMode == KanjiMode::KANJI){
+    rawInputsItr = rawInputs.insert(rawInputsItr, c);
+    rawInputsItr ++;
+  }
 }
 
 void KanjiEditor::onCharRoma(uint8_t c){
