@@ -204,7 +204,11 @@ void KanjiEditor::down(){
   Editor::down();
 }
 void KanjiEditor::enter(){
-  Editor::enter();
+  if(kanjiMode == KanjiMode::HENKAN){
+    kanjiDecide();
+  }else{
+    Editor::enter();
+  }
 }
 void KanjiEditor::onChar(wchar_t c){
   if(kanjiMode == KanjiMode::DIRECT){
@@ -216,7 +220,27 @@ void KanjiEditor::onChar(wchar_t c){
 }
 
 void KanjiEditor::onCharRoma(uint8_t c){
+  if(kanjiMode == KanjiMode::HENKAN){
+    if(c != ' '){
+      kanjiDecide();
+    }
+  }else if(kanjiMode == KanjiMode::KANJI){
+    if(c == ' '){
+      kanjiHenkan();
+      return;
+    }
+  }
+
   switch(c){
+    case ' ':
+      if(kanjiMode == KanjiMode::HENKAN){
+        kanjiListItr ++;
+        if(kanjiListItr == kanjiList.end()){
+          kanjiListItr = kanjiList.begin();
+        }
+        return;
+      }
+      onChar(c);
     case 'a':
     case 'i':
     case 'u':
@@ -249,6 +273,9 @@ void KanjiEditor::onCharRoma(uint8_t c){
               }else if(c == 'y' && shiin1 != 0){
                 shiin2 = 'y';
               }else{
+                if(shiin1 == 'n'){
+                  onChar(L'ん');
+                }
                 shiin1 = c;
               }
               break;
@@ -316,13 +343,15 @@ void KanjiEditor::kanjiHenkan(){
   target[pos] = 0; // null terminate
 
   search(target, &kanjiList, "/SKK-JISYO.S.txt");
-
+  kanjiListItr = kanjiList.begin();
+  if(kanjiList.empty()){
+    kanjiDecide();
+  }
 }
 void KanjiEditor::kanjiDecide(){
   kanjiMode = KanjiMode::DIRECT;
   if(!kanjiList.empty()){
-    string kanji = kanjiList.at(0); // TODO: switch others
-    const char* p = kanji.c_str();
+    const char* p = kanjiListItr->c_str();
     while(*p != 0){
       wchar_t utf16;
       size_t n = utf8CharToUtf16((char*)p, &utf16);

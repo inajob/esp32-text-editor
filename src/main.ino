@@ -19,18 +19,20 @@
 #include <editor.h>
 
 static LGFX lcd;
-const int fontSize = 3;
+const int fontSize = 2;
+KanjiEditor editor;
 
 void draw(){
   lcd.clear(BLACK);
   //M5.Lcd.fillRect(0, (line - lines.begin()) * 16, 320, 16, BLACK);
   lcd.setCursor(0,0);
 
+  lcd.setTextColor(0xFFFFFFU);
   // == TODO: move to lib ==
   vector<vector<wchar_t>>::iterator itr;
   vector<wchar_t>::iterator itr2;
   int x = 0 ,y = -16*fontSize;
-  for(itr = lines.begin(); itr != lines.end(); itr ++){
+  for(itr = editor.lines.begin(); itr != editor.lines.end(); itr ++){
     x = 0;
     y += 16*fontSize;
     for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
@@ -41,7 +43,7 @@ void draw(){
     }
   }
   bool hasRawInputs = false;
-  for(itr2 = rawInputs.begin(); itr2 != rawInputs.end(); itr2 ++){
+  for(itr2 = editor.rawInputs.begin(); itr2 != editor.rawInputs.end(); itr2 ++){
     char utf8[4];
     utf16CharToUtf8(*itr2, utf8);
     lcd.drawString(utf8, x, y);
@@ -49,21 +51,38 @@ void draw(){
     hasRawInputs = true;
   }
   if(!hasRawInputs){
-    if(shiin1 != 0){
-      lcd.drawChar((char)shiin1, x, y);
+    if(editor.shiin1 != 0){
+      lcd.drawChar((char)editor.shiin1, x, y);
       x += 16*fontSize;
     }
-    if(shiin2 != 0){
-      lcd.drawChar((char)shiin2, x, y);
+    if(editor.shiin2 != 0){
+      lcd.drawChar((char)editor.shiin2, x, y);
       x += 16*fontSize;
     }
   }
 
-  lcd.drawRect((colItr - line->begin())*16*fontSize, (line - lines.begin()) * 16 * fontSize, 16*fontSize, 16*fontSize, WHITE);
+  // draw cursor
+  lcd.drawRect((editor.colItr - editor.line->begin())*16*fontSize, (editor.line - editor.lines.begin()) * 16 * fontSize, 16*fontSize, 16*fontSize, WHITE);
   Serial.print("xy:");
-  Serial.print(colItr - line->begin());
+  Serial.print(editor.colItr - editor.line->begin());
   Serial.print(",");
-  Serial.println(line - lines.begin());
+  Serial.println(editor.line - editor.lines.begin());
+
+  // draw kanji list
+  if(editor.kanjiMode == KanjiMode::HENKAN){
+    lcd.setCursor(0, 64);
+    for(vector<string>:: iterator kanji = editor.kanjiList.begin(); kanji != editor.kanjiList.end(); kanji ++){
+      if(kanji == editor.kanjiListItr){
+        lcd.setTextColor(0x000000U, 0xFFFFFFU);
+      }else{
+        lcd.setTextColor(0xFFFFFFU);
+      }
+      // kanji is utf8
+      const char* k = kanji->c_str();
+      lcd.print(k);
+      lcd.print(' ');
+    }
+  }
 }
 
 class KbdRptParser : public KeyboardReportParser
@@ -105,37 +124,37 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
 
   // BS key == 0x2A
   if(key == 0x2A){
-    backSpace();
+    editor.backSpace();
     draw();
     return;
   }
   // <- 0x50
   if(key == 0x50){
-    left();
+    editor.left();
     draw();
     return;
   }
   // -> 0x4F
   if(key == 0x4F){
-    right();
+    editor.right();
     draw();
     return;
   }
   // ^ 0x52
   if(key == 0x52){
-    up();
+    editor.up();
     draw();
     return;
   }
   // v 0x51
   if(key == 0x51){
-    down();
+    editor.down();
     draw();
     return;
   }
 
   if (c == '\r'){
-    enter();
+    editor.enter();
     draw();
     return;
   }
@@ -143,30 +162,18 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
     uint8_t shift = (mod & 0x22);
     //OnKeyPressed(c); // no use now
     if(shift){
-      if(kanjiMode == KanjiMode::DIRECT){
-        setStartKanjiMode();
-        onCharRoma(tolower(c));
-      }else if(kanjiMode == KanjiMode::KANJI){
-        onCharRoma(tolower(c)); // only in shiin
-        rawInputsItr = rawInputs.insert(rawInputsItr, tolower(c));
-        rawInputsItr ++;
-        kanjiHenkan();
+      if(editor.kanjiMode == KanjiMode::DIRECT){
+        editor.setStartKanjiMode();
+        editor.onCharRoma(tolower(c));
+      }else if(editor.kanjiMode == KanjiMode::KANJI){
+        editor.onCharRoma(tolower(c)); // only in shiin
+        editor.rawInputsItr = editor.rawInputs.insert(editor.rawInputsItr, tolower(c));
+        editor.rawInputsItr ++;
+        editor.kanjiHenkan();
       }
       draw();
     }else{
-      if(kanjiMode == KanjiMode::HENKAN){
-        kanjiDecide();
-        onCharRoma(c);
-      }else if(kanjiMode == KanjiMode::KANJI){
-        if(c == ' '){
-          kanjiHenkan();
-        }else{
-        onCharRoma(c);
-        }
-      }else{
-        onCharRoma(c);
-        //onChar(c);
-      }
+      editor.onCharRoma(c);
       draw();
     }
   }
@@ -221,7 +228,7 @@ void KbdRptParser::OnKeyPressed(uint8_t c)
   Serial.println((char)c);
   //M5.Lcd.print((char)c);
 
-  onCharRoma(c);
+  editor.onCharRoma(c);
   //onChar(c);
   draw();
 };
@@ -255,7 +262,7 @@ void setup()
   HidKeyboard.SetReportParser(0, &Prs);
   lcd.println("Start");
 
-  initEditor();
+  editor.initEditor();
 
   lcd.clear(BLACK);
   draw();

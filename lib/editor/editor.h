@@ -40,6 +40,7 @@ class KanjiEditor: public Editor{
   uint8_t shiin1 = 0;
   uint8_t shiin2 = 0;
   vector<string> kanjiList;
+  vector<string> ::iterator kanjiListItr;
   vector<wchar_t> rawInputs;
   vector<wchar_t> ::iterator rawInputsItr;
 
