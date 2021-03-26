@@ -176,8 +176,10 @@ size_t utf8CharToUtf16(char* utf8, wchar_t* utf16){
   return numBytes;
 }
 
+
 void KanjiEditor::initEditor(){
   Editor::initEditor();
+  dictPath = "/SKK-JISYO.S.txt";
 }
 void KanjiEditor::backSpace(){
   if(kanjiMode == KanjiMode::DIRECT){
@@ -246,6 +248,7 @@ void KanjiEditor::onCharRoma(uint8_t c){
         return;
       }
       onChar(c);
+      break;
     case 'a':
     case 'i':
     case 'u':
@@ -347,7 +350,7 @@ void KanjiEditor::kanjiHenkan(){
   }
   target[pos] = 0; // null terminate
 
-  search(target, &kanjiList, "/SKK-JISYO.S.txt");
+  search(target, &kanjiList, (char*)dictPath.c_str());
   kanjiListItr = kanjiList.begin();
   if(kanjiList.empty()){
     kanjiDecide();

@@ -19,7 +19,7 @@
 #include <editor.h>
 
 static LGFX lcd;
-const int fontSize = 2;
+const int fontSize = 1;
 KanjiEditor editor;
 
 void draw(){
@@ -70,7 +70,7 @@ void draw(){
 
   // draw kanji list
   if(editor.kanjiMode == KanjiMode::HENKAN){
-    lcd.setCursor(0, 64);
+    lcd.setCursor(0, 128);
     for(vector<string>:: iterator kanji = editor.kanjiList.begin(); kanji != editor.kanjiList.end(); kanji ++){
       if(kanji == editor.kanjiListItr){
         lcd.setTextColor(0x000000U, 0xFFFFFFU);

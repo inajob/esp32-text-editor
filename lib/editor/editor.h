@@ -39,6 +39,7 @@ class KanjiEditor: public Editor{
   KanjiMode kanjiMode = KanjiMode::DIRECT;
   uint8_t shiin1 = 0;
   uint8_t shiin2 = 0;
+  string dictPath;
   vector<string> kanjiList;
   vector<string> ::iterator kanjiListItr;
   vector<wchar_t> rawInputs;
