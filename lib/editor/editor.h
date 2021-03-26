@@ -59,5 +59,7 @@ class KanjiEditor: public Editor{
   void setStartKanjiMode();
   void kanjiHenkan();
   void kanjiDecide();
+  void nextKanji();
+  void prevKanji();
 };
 #endif

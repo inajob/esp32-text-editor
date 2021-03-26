@@ -192,10 +192,18 @@ void KanjiEditor::backSpace(){
   }
 }
 void KanjiEditor::right(){
-  Editor::right();
+  if(kanjiMode == KanjiMode::HENKAN){
+    nextKanji();
+  }else{
+    Editor::right();
+  }
 }
 void KanjiEditor::left(){
-  Editor::left();
+  if(kanjiMode == KanjiMode::HENKAN){
+    prevKanji();
+  }else{
+    Editor::left();
+  }
 }
 void KanjiEditor::up(){
   Editor::up();
@@ -234,10 +242,7 @@ void KanjiEditor::onCharRoma(uint8_t c){
   switch(c){
     case ' ':
       if(kanjiMode == KanjiMode::HENKAN){
-        kanjiListItr ++;
-        if(kanjiListItr == kanjiList.end()){
-          kanjiListItr = kanjiList.begin();
-        }
+        nextKanji();
         return;
       }
       onChar(c);
@@ -370,3 +375,17 @@ void KanjiEditor::kanjiDecide(){
   rawInputsItr = rawInputs.begin();
 }
 
+void KanjiEditor::nextKanji(){
+  kanjiListItr ++;
+  if(kanjiListItr == kanjiList.end()){
+    kanjiListItr = kanjiList.begin();
+  }
+}
+
+void KanjiEditor::prevKanji(){
+  if(kanjiListItr != kanjiList.begin()){
+    kanjiListItr --;
+  }else{
+    kanjiListItr = kanjiList.end() - 1;
+  }
+}
