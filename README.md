@@ -23,7 +23,7 @@ http://openlab.ring.gr.jp/skk/dic-ja.html から辞書をダウンロードし�
 
 辞書が大きいと、かな漢字変換が非常に遅くなるので「SKK-JISYO.S」がおススメです。
 
-ファイルの中身をUTF-8に変換したうえで、`data/SKK-JISYO.S.txt`に保存してください。
+ファイルの中身をUTF-8、改行コードLFに変換したうえで、`data/SKK-JISYO.S.txt`に保存してください。
 
 下記コマンドラインで辞書をSPIFFSに格納してください。
 
