@@ -42,6 +42,7 @@ void draw(){
       x += 16*fontSize;
     }
   }
+  lcd.setTextColor(0x000000U, 0xFFFFFFU);
   bool hasRawInputs = false;
   for(itr2 = editor.rawInputs.begin(); itr2 != editor.rawInputs.end(); itr2 ++){
     char utf8[4];
