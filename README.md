@@ -16,6 +16,21 @@ M5StackにUSB Host Shieldを接続し、キーボードをつなげた状態で�
 - https://okiraku-camera.tokyo/blog/?p=8333
   - USB Host Shieldに改造が必要です。
 
+
+### Setup dictionary
+
+http://openlab.ring.gr.jp/skk/dic-ja.html から辞書をダウンロードしてください。
+
+辞書が大きいと、かな漢字変換が非常に遅くなるので「SKK-JISYO.S」がおススメです。
+
+ファイルの中身をUTF-8に変換したうえで、`data/SKK-JISYO.S`に保存してください。
+
+下記コマンドラインで辞書をSPIFFSに格納してください。
+
+```
+$ platformio run -e esp32 --target uploadfs
+```
+
 ### Build and upload
 
 ```
