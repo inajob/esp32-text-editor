@@ -182,14 +182,14 @@ void KanjiEditor::initEditor(){
   dictPath = "/SKK-JISYO.S.txt";
 }
 void KanjiEditor::backSpace(){
-  if(kanjiMode == KanjiMode::DIRECT){
+  if(kanjiMode == KanjiMode::ROME){
     Editor::backSpace();
   }else if(kanjiMode == KanjiMode::KANJI){
     if(rawInputsItr != rawInputs.begin()){
       rawInputsItr --;
     }else{
       // cancel KANJI MODE
-      kanjiMode = KanjiMode::DIRECT;
+      kanjiMode = KanjiMode::ROME;
     }
   }
 }
@@ -221,7 +221,7 @@ void KanjiEditor::enter(){
   }
 }
 void KanjiEditor::onChar(wchar_t c){
-  if(kanjiMode == KanjiMode::DIRECT){
+  if(kanjiMode == KanjiMode::ROME){
     Editor::onChar(c);
   }else if(kanjiMode == KanjiMode::KANJI){
     rawInputsItr = rawInputs.insert(rawInputsItr, c);
@@ -357,7 +357,7 @@ void KanjiEditor::kanjiHenkan(){
   }
 }
 void KanjiEditor::kanjiDecide(){
-  kanjiMode = KanjiMode::DIRECT;
+  kanjiMode = KanjiMode::ROME;
   if(!kanjiList.empty()){
     const char* p = kanjiListItr->c_str();
     while(*p != 0){

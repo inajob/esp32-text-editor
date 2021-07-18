@@ -9,7 +9,7 @@ using namespace std;
 #define EDITOR_H
 
 enum class KanjiMode {
-  DIRECT = 0,
+  ROME = 0,
   KANJI,
   HENKAN
 };
@@ -36,7 +36,7 @@ class Editor{
 
 class KanjiEditor: public Editor{
   public:
-  KanjiMode kanjiMode = KanjiMode::DIRECT;
+  KanjiMode kanjiMode = KanjiMode::ROME;
   uint8_t shiin1 = 0;
   uint8_t shiin2 = 0;
   string dictPath;
@@ -45,7 +45,7 @@ class KanjiEditor: public Editor{
   vector<wchar_t> rawInputs;
   vector<wchar_t> ::iterator rawInputsItr;
 
-  // TODO: table
+  // TODO: roma to hira table
 
   void initEditor();
   void backSpace();

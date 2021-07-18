@@ -163,7 +163,7 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
     uint8_t shift = (mod & 0x22);
     //OnKeyPressed(c); // no use now
     if(shift){
-      if(editor.kanjiMode == KanjiMode::DIRECT){
+      if(editor.kanjiMode == KanjiMode::ROME){
         editor.setStartKanjiMode();
         editor.onCharRoma(tolower(c));
       }else if(editor.kanjiMode == KanjiMode::KANJI){
