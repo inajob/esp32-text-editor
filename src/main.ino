@@ -189,7 +189,7 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
     return;
   }
   if (c){
-    uint8_t shift = (mod & 0x22);
+    //uint8_t shift = (mod & 0x22);
     uint8_t ctrl = (mod & 0x11);
     //OnKeyPressed(c); // no use now
     if(ctrl){
@@ -200,7 +200,7 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
       if(editor.kanjiMode == KanjiMode::DIRECT){
         editor.onChar(c);
       }else{
-        if(shift){
+        if(isalpha(c) && c == toupper(c)){
           if(editor.kanjiMode == KanjiMode::ROME || editor.kanjiMode == KanjiMode::KATA){
             editor.setStartKanjiMode();
             editor.onCharRoma(tolower(c));
@@ -209,6 +209,10 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
             editor.rawInputsItr = editor.rawInputs.insert(editor.rawInputsItr, tolower(c));
             editor.rawInputsItr ++;
             editor.kanjiHenkan();
+          }else if(editor.kanjiMode == KanjiMode::HENKAN){
+            editor.kanjiDecide();
+            editor.setStartKanjiMode();
+            editor.onCharRoma(tolower(c));
           }
         }else{
           editor.onCharRoma(c);
