@@ -183,12 +183,37 @@ void test_henkan(){
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, editor.kanjiListItr - editor.kanjiList.begin(), "check kanjiList position last next");
 }
 
+void test_kata(){
+  editor.lines.clear();
+  editor.initEditor();
+
+  editor.onCharRoma('q');
+  editor.onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ア', editor.lines.at(0).at(0), "rome a");
+  editor.backSpace();
+
+  editor.onCharRoma('k');
+  editor.onCharRoma('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'カ', editor.lines.at(0).at(0), "rome ka");
+}
+void test_direct(){
+  editor.lines.clear();
+  editor.initEditor();
+  editor.kanjiMode = KanjiMode::ROME;
+
+  editor.onCharRoma('l');
+  editor.onChar('a');
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'a', editor.lines.at(0).at(0), "direct a");
+}
+
 
 int main(int argc, char **argv){
   RUN_TEST(test_function_true);
   RUN_TEST(test_editor_init);
   RUN_TEST(test_editor_move_cursor);
   RUN_TEST(test_editor_rome_conversion);
+  RUN_TEST(test_kata);
+  RUN_TEST(test_direct);
 
   RUN_TEST(test_dicttool_search);
   RUN_TEST(test_henkan);

@@ -197,23 +197,24 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
         editor.kanjiMode = KanjiMode::ROME;
       }
     }else{
-      if(shift){
-        if(editor.kanjiMode == KanjiMode::ROME || editor.kanjiMode == KanjiMode::KATA){
-          editor.setStartKanjiMode();
-          editor.onCharRoma(tolower(c));
-        }else if(editor.kanjiMode == KanjiMode::KANJI){
-          editor.onCharRoma(tolower(c)); // only in shiin
-          editor.rawInputsItr = editor.rawInputs.insert(editor.rawInputsItr, tolower(c));
-          editor.rawInputsItr ++;
-          editor.kanjiHenkan();
-        }else if(editor.kanjiMode == KanjiMode::DIRECT){
+      if(editor.kanjiMode == KanjiMode::DIRECT){
+        editor.onChar(c);
+      }else{
+        if(shift){
+          if(editor.kanjiMode == KanjiMode::ROME || editor.kanjiMode == KanjiMode::KATA){
+            editor.setStartKanjiMode();
+            editor.onCharRoma(tolower(c));
+          }else if(editor.kanjiMode == KanjiMode::KANJI){
+            editor.onCharRoma(tolower(c)); // only in shiin
+            editor.rawInputsItr = editor.rawInputs.insert(editor.rawInputsItr, tolower(c));
+            editor.rawInputsItr ++;
+            editor.kanjiHenkan();
+          }
+        }else{
           editor.onCharRoma(c);
         }
-        draw();
-      }else{
-        editor.onCharRoma(c);
-        draw();
       }
+      draw();
     }
   }
 }
