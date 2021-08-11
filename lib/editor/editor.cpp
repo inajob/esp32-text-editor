@@ -101,6 +101,10 @@ wchar_t table[][5] = {
   {L'ゃ',L'ぃ',L'ゅ',L'ぇ',L'ょ'}
 };
 
+bool isAscii(wchar_t utf16){
+  return utf16 >= 0 && utf16 <= 0x7e;
+}
+
 uint8_t utf16CharToUtf8(wchar_t utf16, char* utf8){
   uint8_t len = 0;
   if (utf16 < 128) {
@@ -182,7 +186,7 @@ void KanjiEditor::initEditor(){
   dictPath = "/SKK-JISYO.S.txt";
 }
 void KanjiEditor::backSpace(){
-  if(kanjiMode == KanjiMode::ROME){
+  if(kanjiMode == KanjiMode::ROME ||  kanjiMode == KanjiMode::DIRECT){
     Editor::backSpace();
   }else if(kanjiMode == KanjiMode::KANJI){
     if(rawInputsItr != rawInputs.begin()){
@@ -221,7 +225,7 @@ void KanjiEditor::enter(){
   }
 }
 void KanjiEditor::onChar(wchar_t c){
-  if(kanjiMode == KanjiMode::ROME){
+  if(kanjiMode == KanjiMode::ROME || kanjiMode == KanjiMode::DIRECT){
     Editor::onChar(c);
   }else if(kanjiMode == KanjiMode::KANJI){
     rawInputsItr = rawInputs.insert(rawInputsItr, c);
@@ -240,54 +244,60 @@ void KanjiEditor::onCharRoma(uint8_t c){
       return;
     }
   }
-
-  switch(c){
-    case ' ':
-      if(kanjiMode == KanjiMode::HENKAN){
-        nextKanji();
-        return;
-      }
-      onChar(c);
-      break;
-    case 'a':
-    case 'i':
-    case 'u':
-    case 'e':
-    case 'o':
-              onBoin(c);
-              break;
-    case 'k':
-    case 's':
-    case 't':
-    case 'n':
-    case 'h':
-    case 'm':
-    case 'y':
-    case 'r':
-    case 'w':
-    case 'g':
-    case 'z':
-    case 'd':
-    case 'b':
-    case 'p':
-              if(shiin1 == c){
-                if(shiin1 == 'n'){
-                  onChar(L'ん');
-                  shiin1 = 0;
-                  shiin2 = 0;
+  if(kanjiMode != KanjiMode::DIRECT){
+    switch(c){
+      case ' ':
+        if(kanjiMode == KanjiMode::HENKAN){
+          nextKanji();
+          return;
+        }
+        onChar(c);
+        break;
+      case 'a':
+      case 'i':
+      case 'u':
+      case 'e':
+      case 'o':
+                onBoin(c);
+                break;
+      case 'k':
+      case 's':
+      case 't':
+      case 'n':
+      case 'h':
+      case 'm':
+      case 'y':
+      case 'r':
+      case 'w':
+      case 'g':
+      case 'z':
+      case 'd':
+      case 'b':
+      case 'p':
+                if(shiin1 == c){
+                  if(shiin1 == 'n'){
+                    onChar(L'ん');
+                    shiin1 = 0;
+                    shiin2 = 0;
+                  }else{
+                    onChar(L'っ');
+                  }
+                }else if(c == 'y' && shiin1 != 0){
+                  shiin2 = 'y';
                 }else{
-                  onChar(L'っ');
+                  if(shiin1 == 'n'){
+                    onChar(L'ん');
+                  }
+                  shiin1 = c;
                 }
-              }else if(c == 'y' && shiin1 != 0){
-                shiin2 = 'y';
-              }else{
-                if(shiin1 == 'n'){
-                  onChar(L'ん');
-                }
-                shiin1 = c;
-              }
-              break;
-    default: onChar(c);
+                break;
+      case 'l':
+        kanjiMode = KanjiMode::DIRECT;
+        break;
+      default: onChar(c);
+    }
+  }else{ // kanjiMode == DIRECT
+    onChar(c);
   }
 }
 

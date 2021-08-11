@@ -9,11 +9,13 @@ using namespace std;
 #define EDITOR_H
 
 enum class KanjiMode {
-  ROME = 0,
+  DIRECT = 0,
+  ROME,
   KANJI,
   HENKAN
 };
 
+bool isAscii(wchar_t utf16);
 uint8_t utf16CharToUtf8(wchar_t utf16, char* utf8);
 size_t utf8CharToUtf16(char* utf8, wchar_t* utf16);
 // TODO: GetUtf8ByteCount

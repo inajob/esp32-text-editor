@@ -28,7 +28,10 @@ void draw(){
   lcd.setCursor(0,0);
 
   lcd.setTextColor(0xFFFFFFU);
+
   // == TODO: move to lib ==
+
+  // draw decided characters
   vector<vector<wchar_t>>::iterator itr;
   vector<wchar_t>::iterator itr2;
   int x = 0 ,y = -16*fontSize;
@@ -39,9 +42,14 @@ void draw(){
       char utf8[4];
       utf16CharToUtf8(*itr2, utf8);
       lcd.drawString(utf8, x, y);
-      x += 16*fontSize;
+      if(isAscii(*itr2)){
+        x += 8*fontSize;
+      }else{
+        x += 16*fontSize;
+      }
     }
   }
+  // draw un-decided characters
   lcd.setTextColor(0x000000U, 0xFFFFFFU);
   bool hasRawInputs = false;
   for(itr2 = editor.rawInputs.begin(); itr2 != editor.rawInputs.end(); itr2 ++){
@@ -63,7 +71,28 @@ void draw(){
   }
 
   // draw cursor
-  lcd.drawRect((editor.colItr - editor.line->begin())*16*fontSize, (editor.line - editor.lines.begin()) * 16 * fontSize, 16*fontSize, 16*fontSize, WHITE);
+  int cursorX = 0;
+  for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
+    if(isAscii(*itr2)){
+      cursorX += 8*fontSize;
+    }else{
+      cursorX += 16*fontSize;
+    }
+  }
+  int cursorWidth = 16;
+  if(editor.colItr != editor.line->begin()){
+    if(isAscii(*(editor.colItr))){
+      cursorWidth = 8;
+    }
+  }else{
+    if(editor.line->end() - editor.line->begin() > 0){
+      if(isAscii(*(editor.colItr))){
+        cursorWidth = 8;
+      }
+    }
+  }
+  lcd.drawRect(cursorX, (editor.line - editor.lines.begin()) * 16 * fontSize, cursorWidth, 16*fontSize, WHITE);
+
   Serial.print("xy:");
   Serial.print(editor.colItr - editor.line->begin());
   Serial.print(",");
@@ -71,7 +100,7 @@ void draw(){
 
   // draw kanji list
   if(editor.kanjiMode == KanjiMode::HENKAN){
-    lcd.setCursor(0, 128);
+    lcd.setCursor(0, 240 - 2 * 16 * fontSize);
     for(vector<string>:: iterator kanji = editor.kanjiList.begin(); kanji != editor.kanjiList.end(); kanji ++){
       if(kanji == editor.kanjiListItr){
         lcd.setTextColor(0x000000U, 0xFFFFFFU);
@@ -161,21 +190,30 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
   }
   if (c){
     uint8_t shift = (mod & 0x22);
+    uint8_t ctrl = (mod & 0x11);
     //OnKeyPressed(c); // no use now
-    if(shift){
-      if(editor.kanjiMode == KanjiMode::ROME){
-        editor.setStartKanjiMode();
-        editor.onCharRoma(tolower(c));
-      }else if(editor.kanjiMode == KanjiMode::KANJI){
-        editor.onCharRoma(tolower(c)); // only in shiin
-        editor.rawInputsItr = editor.rawInputs.insert(editor.rawInputsItr, tolower(c));
-        editor.rawInputsItr ++;
-        editor.kanjiHenkan();
+    if(ctrl){
+      if(tolower(c) == 'j'){
+        editor.kanjiMode = KanjiMode::ROME;
       }
-      draw();
     }else{
-      editor.onCharRoma(c);
-      draw();
+      if(shift){
+        if(editor.kanjiMode == KanjiMode::ROME){
+          editor.setStartKanjiMode();
+          editor.onCharRoma(tolower(c));
+        }else if(editor.kanjiMode == KanjiMode::KANJI){
+          editor.onCharRoma(tolower(c)); // only in shiin
+          editor.rawInputsItr = editor.rawInputs.insert(editor.rawInputsItr, tolower(c));
+          editor.rawInputsItr ++;
+          editor.kanjiHenkan();
+        }else if(editor.kanjiMode == KanjiMode::DIRECT){
+          editor.onCharRoma(c);
+        }
+        draw();
+      }else{
+        editor.onCharRoma(c);
+        draw();
+      }
     }
   }
 }
