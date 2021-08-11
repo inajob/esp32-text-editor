@@ -172,7 +172,7 @@ void test_henkan(){
 
   TEST_ASSERT_EQUAL_INT32_MESSAGE(4, editor.kanjiList.size(), "check kanjiList size");
 
-  printf("result: %s", editor.kanjiList);
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("腕", editor.kanjiList.at(0).c_str(), "check result");
 
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, editor.kanjiListItr - editor.kanjiList.begin(), "check kanjiList position");
   editor.nextKanji();
@@ -184,6 +184,34 @@ void test_henkan(){
   editor.nextKanji();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, editor.kanjiListItr - editor.kanjiList.begin(), "check kanjiList position last next");
 }
+
+void test_henkan_bs(){
+  editor.lines.clear();
+  editor.initEditor();
+  editor.kanjiList.clear();
+  editor.kanjiListItr = editor.kanjiList.begin();
+
+  editor.rawInputs.clear();
+  editor.rawInputsItr = editor.rawInputs.begin();
+
+  editor.dictPath = "data/SKK-JISYO.S.txt";
+
+
+  editor.kanjiMode = KanjiMode::KANJI;
+  editor.onCharRoma('w');
+  editor.onCharRoma('a');
+  editor.onCharRoma('n');
+  editor.onCharRoma('n');
+
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(2, editor.rawInputs.size(), "check rawInputs");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'わ', editor.rawInputs.at(0), "check rawInputs");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'ん', editor.rawInputs.at(1), "check rawInputs");
+  editor.backSpace();
+  editor.backSpace();
+
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(KanjiMode::ROME, editor.kanjiMode, "back to rome mode");
+}
+
 
 void test_kata(){
   editor.lines.clear();
@@ -219,4 +247,5 @@ int main(int argc, char **argv){
 
   RUN_TEST(test_dicttool_search);
   RUN_TEST(test_henkan);
+  RUN_TEST(test_henkan_bs);
 }
