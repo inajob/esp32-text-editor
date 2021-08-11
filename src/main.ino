@@ -198,7 +198,7 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
       }
     }else{
       if(shift){
-        if(editor.kanjiMode == KanjiMode::ROME){
+        if(editor.kanjiMode == KanjiMode::ROME || editor.kanjiMode == KanjiMode::KATA){
           editor.setStartKanjiMode();
           editor.onCharRoma(tolower(c));
         }else if(editor.kanjiMode == KanjiMode::KANJI){

@@ -10,6 +10,7 @@ using namespace std;
 
 enum class KanjiMode {
   DIRECT = 0,
+  KATA,
   ROME,
   KANJI,
   HENKAN
@@ -57,6 +58,7 @@ class KanjiEditor: public Editor{
   void down();
   void enter();
   void onChar(wchar_t c);
+  wchar_t getKana(int r, int c);
   void onCharRoma(uint8_t c);
   void onBoin(uint8_t c);
   void setStartKanjiMode();
