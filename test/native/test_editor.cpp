@@ -172,6 +172,8 @@ void test_henkan(){
 
   TEST_ASSERT_EQUAL_INT32_MESSAGE(4, editor.kanjiList.size(), "check kanjiList size");
 
+  printf("result: %s", editor.kanjiList);
+
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, editor.kanjiListItr - editor.kanjiList.begin(), "check kanjiList position");
   editor.nextKanji();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, editor.kanjiListItr - editor.kanjiList.begin(), "check kanjiList position after next");
