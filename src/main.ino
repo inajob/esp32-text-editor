@@ -35,9 +35,17 @@ void draw(){
   vector<vector<wchar_t>>::iterator itr;
   vector<wchar_t>::iterator itr2;
   int x = 0 ,y = -16*fontSize;
+  int n = 0;
+  char buf[32];
   for(itr = editor.lines.begin(); itr != editor.lines.end(); itr ++){
     x = 0;
     y += 16*fontSize;
+    n ++;
+
+    sprintf(buf, "%02d", n);
+    lcd.drawString(buf, x, y);
+    x += 24; // line num margin
+
     for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
       char utf8[4];
       utf16CharToUtf8(*itr2, utf8);
@@ -72,7 +80,7 @@ void draw(){
 
   // draw cursor
   //   calc cursor pos
-  int cursorX = 0;
+  int cursorX = 24;
   for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
     if(isAscii(*itr2)){
       cursorX += 8*fontSize;
