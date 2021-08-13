@@ -71,6 +71,7 @@ void draw(){
   }
 
   // draw cursor
+  //   calc cursor pos
   int cursorX = 0;
   for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
     if(isAscii(*itr2)){
@@ -79,6 +80,7 @@ void draw(){
       cursorX += 16*fontSize;
     }
   }
+  //  calc cursor width
   int cursorWidth = 16;
   if(editor.colItr != editor.line->begin()){
     if(isAscii(*(editor.colItr))){
@@ -192,34 +194,8 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
     //uint8_t shift = (mod & 0x22);
     uint8_t ctrl = (mod & 0x11);
     //OnKeyPressed(c); // no use now
-    if(ctrl){
-      if(tolower(c) == 'j'){
-        editor.kanjiMode = KanjiMode::ROME;
-      }
-    }else{
-      if(editor.kanjiMode == KanjiMode::DIRECT){
-        editor.onChar(c);
-      }else{
-        if(isalpha(c) && c == toupper(c)){
-          if(editor.kanjiMode == KanjiMode::ROME || editor.kanjiMode == KanjiMode::KATA){
-            editor.setStartKanjiMode();
-            editor.onCharRoma(tolower(c));
-          }else if(editor.kanjiMode == KanjiMode::KANJI){
-            editor.onCharRoma(tolower(c)); // only in shiin
-            editor.rawInputsItr = editor.rawInputs.insert(editor.rawInputsItr, tolower(c));
-            editor.rawInputsItr ++;
-            editor.kanjiHenkan();
-          }else if(editor.kanjiMode == KanjiMode::HENKAN){
-            editor.kanjiDecide();
-            editor.setStartKanjiMode();
-            editor.onCharRoma(tolower(c));
-          }
-        }else{
-          editor.onCharRoma(c);
-        }
-      }
-      draw();
-    }
+    editor.onCharRoma(c, ctrl);
+    draw();
   }
 }
 
@@ -272,7 +248,7 @@ void KbdRptParser::OnKeyPressed(uint8_t c)
   Serial.println((char)c);
   //M5.Lcd.print((char)c);
 
-  editor.onCharRoma(c);
+  //editor.onCharRoma(c);
   //onChar(c);
   draw();
 };

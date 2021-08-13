@@ -264,7 +264,17 @@ wchar_t KanjiEditor::getKana(int r, int c){
   }
   return table[r][c];
 }
-void KanjiEditor::onCharRoma(uint8_t c){
+void KanjiEditor::onCharRoma(uint8_t c, bool ctrl){
+  if(ctrl){
+    if(c == 'j'){
+      kanjiMode = KanjiMode::ROME;
+    }
+    return;
+  }
+  if(kanjiMode == KanjiMode::DIRECT){
+    onChar(c);
+    return;
+  }
   if(kanjiMode == KanjiMode::HENKAN){
     if(c != ' '){
       kanjiDecide();
@@ -275,6 +285,22 @@ void KanjiEditor::onCharRoma(uint8_t c){
       return;
     }
   }
+
+  if(isalpha(c) && c == toupper(c)){ // uppar case
+    if(kanjiMode == KanjiMode::ROME || kanjiMode == KanjiMode::KATA){ // start kanji mode
+      setStartKanjiMode();
+      c = tolower(c);
+    }else if(kanjiMode == KanjiMode::KANJI){ // last 1 char and henkan
+      c = tolower(c);
+      onChar(c);
+      kanjiHenkan();
+    }else if(kanjiMode == KanjiMode::HENKAN){ // decide and next kanji
+      kanjiDecide();
+      setStartKanjiMode();
+      c = tolower(c);
+    }
+  }
+
   switch(c){
     case ' ':
       if(kanjiMode == KanjiMode::HENKAN){

@@ -59,7 +59,7 @@ class KanjiEditor: public Editor{
   void enter();
   void onChar(wchar_t c);
   wchar_t getKana(int r, int c);
-  void onCharRoma(uint8_t c);
+  void onCharRoma(uint8_t c, bool ctrl = false);
   void onBoin(uint8_t c);
   void setStartKanjiMode();
   void kanjiHenkan();
