@@ -57,7 +57,21 @@ void draw(){
       }
     }
   }
+
+  //   calc cursor pos
+  int cursorY = (editor.line - editor.lines.begin()) * 16 * fontSize;
+  int cursorX = 24;
+  for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
+    if(isAscii(*itr2)){
+      cursorX += 8*fontSize;
+    }else{
+      cursorX += 16*fontSize;
+    }
+  }
+
   // draw un-decided characters
+  x = cursorX;
+  y = cursorY;
   lcd.setTextColor(0x000000U, 0xFFFFFFU);
   bool hasRawInputs = false;
   for(itr2 = editor.rawInputs.begin(); itr2 != editor.rawInputs.end(); itr2 ++){
@@ -79,15 +93,6 @@ void draw(){
   }
 
   // draw cursor
-  //   calc cursor pos
-  int cursorX = 24;
-  for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
-    if(isAscii(*itr2)){
-      cursorX += 8*fontSize;
-    }else{
-      cursorX += 16*fontSize;
-    }
-  }
   //  calc cursor width
   int cursorWidth = 16;
   if(editor.colItr != editor.line->begin()){
