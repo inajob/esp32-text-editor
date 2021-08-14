@@ -99,7 +99,8 @@ wchar_t table[][5] = {
   {L'ば',L'び',L'ぶ',L'べ',L'ぼ'},
   {L'ぱ',L'ぴ',L'ぷ',L'ぺ',L'ぽ'},
   {L'ゃ',L'ぃ',L'ゅ',L'ぇ',L'ょ'},
-  {L'っ',L'ん',L'-',L'-',L'-'} // 16
+  {L'っ',L'ん',L'-',L'-',L'-'}, // 16
+  {L'ぁ',L'ぃ',L'ぅ',L'ぇ',L'ぉ'}
 };
 wchar_t kata_table[][5] = {
   {L'ア',L'イ',L'ウ',L'エ',L'オ'},
@@ -118,7 +119,8 @@ wchar_t kata_table[][5] = {
   {L'バ',L'ビ',L'ブ',L'ベ',L'ボ'},
   {L'パ',L'ピ',L'プ',L'ペ',L'ポ'},
   {L'ャ',L'ィ',L'ュ',L'ェ',L'ョ'},
-  {L'ッ',L'ン',L'-',L'-',L'-'}
+  {L'ッ',L'ン',L'-',L'-',L'-'},
+  {L'ァ',L'ィ',L'ゥ',L'ェ',L'ォ'}
 };
 
 
@@ -208,6 +210,14 @@ void KanjiEditor::initEditor(){
 }
 void KanjiEditor::backSpace(){
   if(kanjiMode == KanjiMode::ROME || kanjiMode == KanjiMode::KATA || kanjiMode == KanjiMode::DIRECT){
+    if(shiin2 != 0){
+      shiin2 = 0;
+      return;
+    }
+    if(shiin1 != 0){
+      shiin1 = 0;
+      return;
+    }
     Editor::backSpace();
   }else if(kanjiMode == KanjiMode::KANJI){
     if(rawInputsItr != rawInputs.begin()){
@@ -331,6 +341,7 @@ void KanjiEditor::onCharRoma(uint8_t c, bool ctrl){
     case 'd':
     case 'b':
     case 'p':
+    case 'x':
               if(shiin1 == c){
                 if(shiin1 == 'n'){
                   onChar(getKana(16, 1)); // ん
@@ -385,6 +396,7 @@ void KanjiEditor::onBoin(uint8_t c){
     case 'd': s = 12; break;
     case 'b': s = 13; break;
     case 'p': s = 14; break;
+    case 'x': s = 17; break;
 
   }
   shiin1 = 0;
