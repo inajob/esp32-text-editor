@@ -7,6 +7,8 @@
 #endif
 #include <SPI.h>
 
+#include <SPIFFS.h>
+
 #include <M5Stack.h>
 #include <efontEnableJa.h>
 #include <efontFontData.h>
@@ -17,58 +19,115 @@
 #include <editor.h>
 
 static LGFX lcd;
-const int fontSize = 3;
+const int fontSize = 1;
+KanjiEditor editor;
 
 void draw(){
   lcd.clear(BLACK);
   //M5.Lcd.fillRect(0, (line - lines.begin()) * 16, 320, 16, BLACK);
   lcd.setCursor(0,0);
 
+  lcd.setTextColor(0xFFFFFFU);
+
   // == TODO: move to lib ==
+
+  // draw decided characters
   vector<vector<wchar_t>>::iterator itr;
   vector<wchar_t>::iterator itr2;
-  int x = 0 ,y = 0;
-  for(itr = lines.begin(); itr != lines.end(); itr ++){
+  int x = 0 ,y = -16*fontSize;
+  int n = 0;
+  char buf[32];
+  for(itr = editor.lines.begin(); itr != editor.lines.end(); itr ++){
     x = 0;
-    for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
-      char u8Ch[4];
-      // convert utf16 -> utf8
-      uint16_t u16Ch = (int16_t)(*itr2);
-      if (u16Ch < 128) {
-        u8Ch[0] = char(u16Ch);
-        u8Ch[1] = 0;
-        u8Ch[2] = 0;
-      } else if (u16Ch < 2048) {
-        u8Ch[0] = 0xC0 | char(u16Ch >> 6);
-        u8Ch[1] = 0x80 | (char(u16Ch) & 0x3F);
-        u8Ch[2] = 0;
-      } else if (u16Ch < 65536) {
-        u8Ch[0] = 0xE0 | char(u16Ch >> 12);
-        u8Ch[1] = 0x80 | (char(u16Ch >> 6) & 0x3F);
-        u8Ch[2] = 0x80 | (char(u16Ch) & 0x3F);
-        u8Ch[3] = 0;
-      }
+    y += 16*fontSize;
+    n ++;
 
-      lcd.drawString(u8Ch, x, y);
+    sprintf(buf, "%02d", n);
+    lcd.drawString(buf, x, y);
+    x += 24; // line num margin
+
+    for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
+      char utf8[4];
+      utf16CharToUtf8(*itr2, utf8);
+      lcd.drawString(utf8, x, y);
+      if(isAscii(*itr2)){
+        x += 8*fontSize;
+      }else{
+        x += 16*fontSize;
+      }
+    }
+  }
+
+  //   calc cursor pos
+  int cursorY = (editor.line - editor.lines.begin()) * 16 * fontSize;
+  int cursorX = 24;
+  for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
+    if(isAscii(*itr2)){
+      cursorX += 8*fontSize;
+    }else{
+      cursorX += 16*fontSize;
+    }
+  }
+
+  // draw un-decided characters
+  x = cursorX;
+  y = cursorY;
+  lcd.setTextColor(0x000000U, 0xFFFFFFU);
+  bool hasRawInputs = false;
+  for(itr2 = editor.rawInputs.begin(); itr2 != editor.rawInputs.end(); itr2 ++){
+    char utf8[4];
+    utf16CharToUtf8(*itr2, utf8);
+    lcd.drawString(utf8, x, y);
+    x += 16*fontSize;
+    hasRawInputs = true;
+  }
+  if(!hasRawInputs){
+    if(editor.shiin1 != 0){
+      lcd.drawChar((char)editor.shiin1, x, y);
       x += 16*fontSize;
     }
-    y += 16*fontSize;
-  }
-  int dx = 0;
-  if(shiin1 != 0){
-    lcd.drawChar((char)shiin1, ((colItr - line->begin()) + dx)*16*fontSize, (line - lines.begin()) * 16 * fontSize);
-    dx ++;
-  }
-  if(shiin2 != 0){
-    lcd.drawChar((char)shiin2, ((colItr - line->begin()) + dx)*16*fontSize, (line - lines.begin()) * 16 * fontSize);
-    dx ++;
+    if(editor.shiin2 != 0){
+      lcd.drawChar((char)editor.shiin2, x, y);
+      x += 16*fontSize;
+    }
   }
 
-  lcd.drawRect((colItr - line->begin())*16*fontSize, (line - lines.begin()) * 16 * fontSize, 16*fontSize, 16*fontSize, WHITE);
+  // draw cursor
+  //  calc cursor width
+  int cursorWidth = 16;
+  if(editor.colItr != editor.line->begin()){
+    if(isAscii(*(editor.colItr))){
+      cursorWidth = 8;
+    }
+  }else{
+    if(editor.line->end() - editor.line->begin() > 0){
+      if(isAscii(*(editor.colItr))){
+        cursorWidth = 8;
+      }
+    }
+  }
+  lcd.drawRect(cursorX, (editor.line - editor.lines.begin()) * 16 * fontSize, cursorWidth, 16*fontSize, WHITE);
+
   Serial.print("xy:");
-  Serial.print(colItr - line->begin());
+  Serial.print(editor.colItr - editor.line->begin());
   Serial.print(",");
-  Serial.println(line - lines.begin());
+  Serial.println(editor.line - editor.lines.begin());
+
+  // draw kanji list
+  if(editor.kanjiMode == KanjiMode::HENKAN){
+    lcd.setCursor(0, 240 - 2 * 16 * fontSize);
+    for(vector<string>:: iterator kanji = editor.kanjiList.begin(); kanji != editor.kanjiList.end(); kanji ++){
+      if(kanji == editor.kanjiListItr){
+        lcd.setTextColor(0x000000U, 0xFFFFFFU);
+      }else{
+        lcd.setTextColor(0xFFFFFFU);
+      }
+      // kanji is utf8
+      const char* k = kanji->c_str();
+      lcd.print(k);
+      lcd.print(' ');
+    }
+  }
 }
 
 class KbdRptParser : public KeyboardReportParser
@@ -110,42 +169,47 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
 
   // BS key == 0x2A
   if(key == 0x2A){
-    backSpace();
+    editor.backSpace();
     draw();
     return;
   }
   // <- 0x50
   if(key == 0x50){
-    left();
+    editor.left();
     draw();
     return;
   }
   // -> 0x4F
   if(key == 0x4F){
-    right();
+    editor.right();
     draw();
     return;
   }
   // ^ 0x52
   if(key == 0x52){
-    up();
+    editor.up();
     draw();
     return;
   }
   // v 0x51
   if(key == 0x51){
-    down();
+    editor.down();
     draw();
     return;
   }
 
   if (c == '\r'){
-    enter();
+    editor.enter();
     draw();
     return;
   }
-  if (c)
-    OnKeyPressed(c);
+  if (c){
+    //uint8_t shift = (mod & 0x22);
+    uint8_t ctrl = (mod & 0x11);
+    //OnKeyPressed(c); // no use now
+    editor.onCharRoma(c, ctrl);
+    draw();
+  }
 }
 
 void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
@@ -192,11 +256,12 @@ void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
 
 void KbdRptParser::OnKeyPressed(uint8_t c)
 {
+ /* no use */
   Serial.print("ASCII: ");
   Serial.println((char)c);
   //M5.Lcd.print((char)c);
 
-  onCharRoma(c);
+  //editor.onCharRoma(c);
   //onChar(c);
   draw();
 };
@@ -211,6 +276,7 @@ void setup()
 {
   Serial.begin( 115200 );
   //M5.begin();
+  SPIFFS.begin();
   lcd.init();
   lcd.setTextSize(fontSize, fontSize);
   lcd.setTextColor(0xFFFFFFU);
@@ -229,7 +295,7 @@ void setup()
   HidKeyboard.SetReportParser(0, &Prs);
   lcd.println("Start");
 
-  initEditor();
+  editor.initEditor();
 
   lcd.clear(BLACK);
   draw();
