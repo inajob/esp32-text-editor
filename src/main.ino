@@ -92,6 +92,17 @@ void draw(){
     }
   }
 
+  // mode line
+  lcd.setTextColor(0x000000U, 0xFFFFFFU);
+  lcd.setCursor(320 - 16*3*fontSize, 240 - 2 * 16 * fontSize);
+  switch(editor.kanjiMode){
+    case KanjiMode::DIRECT: lcd.print("[A]"); break;
+    case KanjiMode::KATA: lcd.print("[ア]"); break;
+    case KanjiMode::ROME: lcd.print("[あ]"); break;
+    case KanjiMode::KANJI: lcd.print("[漢]"); break;
+    case KanjiMode::HENKAN: break;
+  }
+
   // draw cursor
   //  calc cursor width
   int cursorWidth = 16;
