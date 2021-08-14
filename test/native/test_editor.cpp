@@ -212,6 +212,35 @@ void test_henkan_bs(){
   TEST_ASSERT_EQUAL_INT32_MESSAGE(KanjiMode::ROME, editor.kanjiMode, "back to rome mode");
 }
 
+void test_henkan_ng(){
+  editor.lines.clear();
+  editor.initEditor();
+  editor.kanjiList.clear();
+  editor.kanjiListItr = editor.kanjiList.begin();
+
+  editor.rawInputs.clear();
+  editor.rawInputsItr = editor.rawInputs.begin();
+
+  editor.dictPath = "data/SKK-JISYO.S.txt";
+
+
+  editor.kanjiMode = KanjiMode::ROME;
+  editor.onCharRoma('K');
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(KanjiMode::KANJI, editor.kanjiMode, "go to kanji mode");
+  editor.onCharRoma('a');
+  editor.onCharRoma('k');
+  editor.onCharRoma('u');
+  editor.onCharRoma('K');
+
+  TEST_ASSERT_EQUAL_INT32_MESSAGE('k', editor.shiin1, "check shiin1");
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(0, editor.rawInputs.size(), "check rawInputs");
+
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(2, editor.lines.at(0).size(), "check line[0]");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'か', editor.lines.at(0).at(0), "rome ka");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'く', editor.lines.at(0).at(1), "rome ku");
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(KanjiMode::ROME, editor.kanjiMode, "back to rome mode");
+}
+
 
 void test_kata(){
   editor.lines.clear();
@@ -247,5 +276,6 @@ int main(int argc, char **argv){
 
   RUN_TEST(test_dicttool_search);
   RUN_TEST(test_henkan);
+  RUN_TEST(test_henkan_ng);
   RUN_TEST(test_henkan_bs);
 }
