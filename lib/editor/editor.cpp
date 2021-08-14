@@ -294,6 +294,7 @@ void KanjiEditor::onCharRoma(uint8_t c, bool ctrl){
       c = tolower(c);
       onChar(c);
       kanjiHenkan();
+      return;
     }else if(kanjiMode == KanjiMode::HENKAN){ // decide and next kanji
       kanjiDecide();
       setStartKanjiMode();
@@ -433,11 +434,23 @@ void KanjiEditor::kanjiDecide(){
       p += n;
     }
     kanjiList.clear();
+    // copy tail alpha at rawInputs to line
+    vector<wchar_t>::iterator itr;
+    for(itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
+      if(*itr < 128 && isalpha(char(*itr))){
+        printf("add char %c\n", char(*itr));
+        onCharRoma(char(*itr), false);
+      }
+    }
   }else{
     // copy rawInputs to line
     vector<wchar_t>::iterator itr;
     for(itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
-      onChar(*itr);
+      if(*itr < 128 && isalpha(char(*itr))){
+        onCharRoma(char(*itr), false);
+      }else{
+        onChar(*itr);
+      }
     }
   }
   rawInputs.clear();

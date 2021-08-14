@@ -183,8 +183,32 @@ void test_henkan(){
   TEST_ASSERT_EQUAL_INT32_MESSAGE(3, editor.kanjiListItr - editor.kanjiList.begin(), "check kanjiList position after first prev");
   editor.nextKanji();
   TEST_ASSERT_EQUAL_INT32_MESSAGE(0, editor.kanjiListItr - editor.kanjiList.begin(), "check kanjiList position last next");
+  editor.enter();
 }
 
+void test_henkan2(){
+  editor.lines.clear();
+  editor.initEditor();
+  editor.dictPath = "data/SKK-JISYO.S.txt";
+
+  editor.onCharRoma('K');
+  editor.onCharRoma('a');
+  editor.onCharRoma('n');
+  editor.onCharRoma('n');
+  editor.onCharRoma('g');
+  editor.onCharRoma('a');
+  editor.onCharRoma('E');
+
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(1, editor.kanjiList.size(), "check kanjiList size");
+
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("考", editor.kanjiList.at(0).c_str(), "check result");
+
+  editor.enter();
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(2, editor.lines.at(0).size(), "check line[0]");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'考', editor.lines.at(0).at(0), "rome kanga");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(L'え', editor.lines.at(0).at(1), "rome e");
+
+}
 void test_henkan_bs(){
   editor.lines.clear();
   editor.initEditor();
@@ -276,6 +300,7 @@ int main(int argc, char **argv){
 
   RUN_TEST(test_dicttool_search);
   RUN_TEST(test_henkan);
+  RUN_TEST(test_henkan2);
   RUN_TEST(test_henkan_ng);
   RUN_TEST(test_henkan_bs);
 }
