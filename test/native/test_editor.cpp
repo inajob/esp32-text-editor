@@ -95,7 +95,6 @@ void test_editor_move_cursor(void){
 }
 
 void test_editor_rome_conversion(void){
-  editor.lines.clear();
   editor.initEditor();
 
   editor.onCharRoma('a');
@@ -159,7 +158,6 @@ void test_dicttool_search(){
 }
 
 void test_henkan(){
-  editor.lines.clear();
   editor.initEditor();
   editor.dictPath = "data/SKK-JISYO.S.txt";
 
@@ -187,7 +185,6 @@ void test_henkan(){
 }
 
 void test_henkan2(){
-  editor.lines.clear();
   editor.initEditor();
   editor.dictPath = "data/SKK-JISYO.S.txt";
 
@@ -210,7 +207,6 @@ void test_henkan2(){
 
 }
 void test_henkan_bs(){
-  editor.lines.clear();
   editor.initEditor();
   editor.kanjiList.clear();
   editor.kanjiListItr = editor.kanjiList.begin();
@@ -237,7 +233,6 @@ void test_henkan_bs(){
 }
 
 void test_henkan_ng(){
-  editor.lines.clear();
   editor.initEditor();
   editor.kanjiList.clear();
   editor.kanjiListItr = editor.kanjiList.begin();
@@ -267,7 +262,6 @@ void test_henkan_ng(){
 
 
 void test_kata(){
-  editor.lines.clear();
   editor.initEditor();
 
   editor.onCharRoma('q');
@@ -280,7 +274,6 @@ void test_kata(){
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L'カ', editor.lines.at(0).at(0), "rome ka");
 }
 void test_direct(){
-  editor.lines.clear();
   editor.initEditor();
   editor.kanjiMode = KanjiMode::ROME;
 

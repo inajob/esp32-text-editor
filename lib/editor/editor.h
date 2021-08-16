@@ -35,6 +35,8 @@ class Editor{
   virtual void down();
   virtual void enter();
   virtual void onChar(wchar_t c);
+  void load();
+  void save();
 };
 
 class KanjiEditor: public Editor{

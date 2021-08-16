@@ -1,6 +1,7 @@
 #include <editor.h>
 
 void Editor::initEditor(){
+  lines.clear();
   line = lines.begin(); // lines
   line = lines.insert(line, vector<wchar_t>());
   colItr = line->begin(); // line
@@ -81,6 +82,49 @@ void Editor::onChar(wchar_t c){
   colItr = line->insert(colItr, c);
   colItr ++;
 }
+
+void Editor::load(){
+#ifdef ESP32
+  initEditor();
+  File fp;
+  fp = SPIFFS.open("/test.txt" , "r");
+  while(fp.available()){
+    char c1 = fp.read();
+    char c2 = fp.read();
+    printf("load %x,%x\n", c1, c2);
+    wchar_t w = (c1 << 8) | (c2);
+    if(c1 == 0 && c2 == '\n'){
+      enter();
+    }else{
+      onChar(w);
+    }
+  }
+  fp.close();
+#endif
+}
+void Editor::save(){
+#ifdef ESP32
+  vector<vector<wchar_t>>::iterator itr;
+  vector<wchar_t>::iterator itr2;
+
+  File fp;
+  fp = SPIFFS.open("/test.txt" , "w");
+  for(itr = lines.begin(); itr != lines.end(); itr ++){
+    for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
+      char c1 = (*itr2 >> 8);
+      char c2 = *itr2 & 0xff;
+      printf("save %x,%x\n", c1, c2);
+      fp.write(0xff & c1); // save as UTF16
+      fp.write(0xff & c2); // save as UTF16
+    }
+    fp.write(0x00);
+    fp.write('\n');
+  }
+  fp.close();
+#endif
+}
+
+
 
 wchar_t table[][5] = {
   {L'あ',L'い',L'う',L'え',L'お'},
@@ -278,6 +322,12 @@ void KanjiEditor::onCharRoma(uint8_t c, bool ctrl){
   if(ctrl){
     if(c == 'j'){
       kanjiMode = KanjiMode::ROME;
+    }
+    if(c == 's'){
+      save();
+    }
+    if(c == 'l'){
+      load();
     }
     return;
   }
