@@ -10,8 +10,8 @@
 #include <SPIFFS.h>
 
 #include <M5Stack.h>
-#include <efontEnableJa.h>
-#include <efontFontData.h>
+//#include <efontEnableJa.h>
+//#include <efontFontData.h>
 
 #define LGFX_M5STACK
 #include <LovyanGFX.hpp>
@@ -20,6 +20,8 @@
 
 static LGFX lcd;
 const int fontSize = 1;
+const int fontPointH = 12;
+const int fontPointW = 6;
 KanjiEditor editor;
 
 void draw(){
@@ -34,12 +36,12 @@ void draw(){
   // draw decided characters
   vector<vector<wchar_t>>::iterator itr;
   vector<wchar_t>::iterator itr2;
-  int x = 0 ,y = -16*fontSize;
+  int x = 0 ,y = -fontPointH*fontSize;
   int n = 0;
   char buf[32];
   for(itr = editor.lines.begin(); itr != editor.lines.end(); itr ++){
     x = 0;
-    y += 16*fontSize;
+    y += fontPointH*fontSize;
     n ++;
 
     sprintf(buf, "%02d", n);
@@ -51,21 +53,21 @@ void draw(){
       utf16CharToUtf8(*itr2, utf8);
       lcd.drawString(utf8, x, y);
       if(isAscii(*itr2)){
-        x += 8*fontSize;
+        x += fontPointW*fontSize;
       }else{
-        x += 16*fontSize;
+        x += fontPointH*fontSize; // zenkaku
       }
     }
   }
 
   //   calc cursor pos
-  int cursorY = (editor.line - editor.lines.begin()) * 16 * fontSize;
+  int cursorY = (editor.line - editor.lines.begin()) * fontPointH * fontSize;
   int cursorX = 24;
   for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
     if(isAscii(*itr2)){
-      cursorX += 8*fontSize;
+      cursorX += fontPointW*fontSize;
     }else{
-      cursorX += 16*fontSize;
+      cursorX += fontPointH*fontSize; // zenkaku
     }
   }
 
@@ -78,23 +80,23 @@ void draw(){
     char utf8[4];
     utf16CharToUtf8(*itr2, utf8);
     lcd.drawString(utf8, x, y);
-    x += 16*fontSize;
+    x += fontPointH*fontSize;
     hasRawInputs = true;
   }
   if(!hasRawInputs){
     if(editor.shiin1 != 0){
-      lcd.drawChar((char)editor.shiin1, x, y);
-      x += 16*fontSize;
+      lcd.drawChar((char)editor.shiin1, x, y + fontPointH);
+      x += fontPointW*fontSize;
     }
     if(editor.shiin2 != 0){
-      lcd.drawChar((char)editor.shiin2, x, y);
-      x += 16*fontSize;
+      lcd.drawChar((char)editor.shiin2, x, y + fontPointH);
+      x += fontPointW*fontSize;
     }
   }
 
   // mode line
   lcd.setTextColor(0x000000U, 0xFFFFFFU);
-  lcd.setCursor(320 - 16*3*fontSize, 240 - 2 * 16 * fontSize);
+  lcd.setCursor(320 - fontPointH*3*fontSize, 240 - 2 * fontPointH * fontSize);
   switch(editor.kanjiMode){
     case KanjiMode::DIRECT: lcd.print("[A]"); break;
     case KanjiMode::KATA: lcd.print("[ア]"); break;
@@ -105,19 +107,19 @@ void draw(){
 
   // draw cursor
   //  calc cursor width
-  int cursorWidth = 16;
+  int cursorWidth = fontPointH;
   if(editor.colItr != editor.line->begin()){
     if(isAscii(*(editor.colItr))){
-      cursorWidth = 8;
+      cursorWidth = fontPointW;
     }
   }else{
     if(editor.line->end() - editor.line->begin() > 0){
       if(isAscii(*(editor.colItr))){
-        cursorWidth = 8;
+        cursorWidth = fontPointW;
       }
     }
   }
-  lcd.drawRect(cursorX, (editor.line - editor.lines.begin()) * 16 * fontSize, cursorWidth, 16*fontSize, WHITE);
+  lcd.drawRect(cursorX, (editor.line - editor.lines.begin()) * fontPointH * fontSize, cursorWidth, fontPointH*fontSize, WHITE);
 
   Serial.print("xy:");
   Serial.print(editor.colItr - editor.line->begin());
@@ -126,7 +128,7 @@ void draw(){
 
   // draw kanji list
   if(editor.kanjiMode == KanjiMode::HENKAN){
-    lcd.setCursor(0, 240 - 2 * 16 * fontSize);
+    lcd.setCursor(0, 240 - 2 * fontPointH * fontSize);
     for(vector<string>:: iterator kanji = editor.kanjiList.begin(); kanji != editor.kanjiList.end(); kanji ++){
       if(kanji == editor.kanjiListItr){
         lcd.setTextColor(0x000000U, 0xFFFFFFU);
@@ -291,7 +293,8 @@ void setup()
   lcd.init();
   lcd.setTextSize(fontSize, fontSize);
   lcd.setTextColor(0xFFFFFFU);
-  lcd.setFont(&fonts::efont);
+  //lcd.setFont(&fonts::efont);
+  lcd.setFont(&fonts::efontJA_12);
   //M5.Lcd.setTextSize(2);
 #if !defined(__MIPSEL__)
   while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
