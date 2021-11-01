@@ -50,7 +50,9 @@ class KanjiEditor: public Editor{
   vector<wchar_t> rawInputs;
   vector<wchar_t> ::iterator rawInputsItr;
 
-  // TODO: roma to hira table
+  // rome to hira table
+  static wchar_t table[][5];
+  static wchar_t kata_table[][5];
 
   void initEditor();
   void backSpace();

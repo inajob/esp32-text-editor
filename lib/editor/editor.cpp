@@ -124,9 +124,7 @@ void Editor::save(){
 #endif
 }
 
-
-
-wchar_t table[][5] = {
+wchar_t KanjiEditor::table[][5] = {
   {L'あ',L'い',L'う',L'え',L'お'},
   {L'か',L'き',L'く',L'け',L'こ'},
   {L'さ',L'し',L'す',L'せ',L'そ'},
@@ -146,7 +144,7 @@ wchar_t table[][5] = {
   {L'っ',L'ん',L'-',L'-',L'-'}, // 16
   {L'ぁ',L'ぃ',L'ぅ',L'ぇ',L'ぉ'}
 };
-wchar_t kata_table[][5] = {
+wchar_t KanjiEditor::kata_table[][5] = {
   {L'ア',L'イ',L'ウ',L'エ',L'オ'},
   {L'カ',L'キ',L'ク',L'ケ',L'コ'},
   {L'サ',L'シ',L'ス',L'セ',L'ソ'},
@@ -166,7 +164,6 @@ wchar_t kata_table[][5] = {
   {L'ッ',L'ン',L'-',L'-',L'-'},
   {L'ァ',L'ィ',L'ゥ',L'ェ',L'ォ'}
 };
-
 
 bool isAscii(wchar_t utf16){
   return utf16 >= 0 && utf16 <= 0x7e;
