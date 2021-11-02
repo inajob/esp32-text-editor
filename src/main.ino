@@ -38,6 +38,12 @@ void draw(){
   vector<wchar_t>::iterator itr2;
   int x = 0 ,y = -fontPointH*fontSize;
   int n = 0;
+  int cursorY = 0;
+  int cursorX = 24;
+  int cursorWidth = fontPointH;
+  bool beforeCursorY = true;
+  bool beforeCursorX = true;
+
   char buf[32];
   for(itr = editor.lines.begin(); itr != editor.lines.end(); itr ++){
     x = 0;
@@ -52,22 +58,39 @@ void draw(){
       char utf8[4];
       utf16CharToUtf8(*itr2, utf8);
       lcd.drawString(utf8, x, y);
+      if(itr2 == editor.colItr){
+        beforeCursorX = false;
+        if(isAscii(*(editor.colItr))){
+          cursorWidth = fontPointW;
+        }
+      }
       if(isAscii(*itr2)){
         x += fontPointW*fontSize;
+        if(editor.line == itr && beforeCursorX){
+          cursorX += fontPointW*fontSize;
+        }
       }else{
         x += fontPointH*fontSize; // zenkaku
+        if(editor.line == itr && beforeCursorX){
+          cursorX += fontPointH*fontSize;
+        }
+      }
+      if(x > 320-24){
+        x = 24;
+        if(editor.line == itr && beforeCursorX){
+          cursorX = 24;
+        }
+        y += fontPointH * fontSize;
+        if(beforeCursorY && beforeCursorX){
+          cursorY += fontPointH*fontSize;
+        }
       }
     }
-  }
-
-  //   calc cursor pos
-  int cursorY = (editor.line - editor.lines.begin()) * fontPointH * fontSize;
-  int cursorX = 24;
-  for(itr2 = editor.line->begin(); itr2 != editor.colItr; itr2 ++){
-    if(isAscii(*itr2)){
-      cursorX += fontPointW*fontSize;
-    }else{
-      cursorX += fontPointH*fontSize; // zenkaku
+    if(editor.line == itr){
+      beforeCursorY = false;
+    }
+    if(beforeCursorY){
+      cursorY += fontPointH*fontSize;
     }
   }
 
@@ -106,20 +129,7 @@ void draw(){
   }
 
   // draw cursor
-  //  calc cursor width
-  int cursorWidth = fontPointH;
-  if(editor.colItr != editor.line->begin()){
-    if(isAscii(*(editor.colItr))){
-      cursorWidth = fontPointW;
-    }
-  }else{
-    if(editor.line->end() - editor.line->begin() > 0){
-      if(isAscii(*(editor.colItr))){
-        cursorWidth = fontPointW;
-      }
-    }
-  }
-  lcd.drawRect(cursorX, (editor.line - editor.lines.begin()) * fontPointH * fontSize, cursorWidth, fontPointH*fontSize, WHITE);
+  lcd.drawRect(cursorX, cursorY, cursorWidth, fontPointH*fontSize, WHITE);
 
   Serial.print("xy:");
   Serial.print(editor.colItr - editor.line->begin());
