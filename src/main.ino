@@ -17,140 +17,112 @@
 #include <LovyanGFX.hpp>
 
 #include <editor.h>
+#include <chrscreen.h>
 
-static LGFX lcd;
+LGFX lcd;
 const int fontSize = 1;
 const int fontPointH = 12;
 const int fontPointW = 6;
 KanjiEditor editor;
+ChrScreen chrScreen;
 
 void draw(){
-  lcd.clear(BLACK);
-  //M5.Lcd.fillRect(0, (line - lines.begin()) * 16, 320, 16, BLACK);
-  lcd.setCursor(0,0);
-
-  lcd.setTextColor(0xFFFFFFU);
-
   // == TODO: move to lib ==
+
+  int cursorX = 0;
+  int cursorY = 0;
 
   // draw decided characters
   vector<vector<wchar_t>>::iterator itr;
   vector<wchar_t>::iterator itr2;
-  int x = 0 ,y = -fontPointH*fontSize;
-  int n = 0;
-  int cursorY = 0;
-  int cursorX = 24;
-  int cursorWidth = fontPointH;
-  bool beforeCursorY = true;
-  bool beforeCursorX = true;
-
-  char buf[32];
+  int x = 0, y = 0;
   for(itr = editor.lines.begin(); itr != editor.lines.end(); itr ++){
-    x = 0;
-    y += fontPointH*fontSize;
-    n ++;
-
-    sprintf(buf, "%02d", n);
-    lcd.drawString(buf, x, y);
-    x += 24; // line num margin
-
+    chrScreen.clearLine(y, TFT_WHITE, TFT_BLACK);
+    chrScreen.putChar(0, y, (wchar_t)('0' + y/10), TFT_WHITE, TFT_BLACK);
+    chrScreen.putChar(1, y, (wchar_t)('0' + y%10), TFT_WHITE, TFT_BLACK);
+    x += 3;
     for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
-      char utf8[4];
-      utf16CharToUtf8(*itr2, utf8);
-      lcd.drawString(utf8, x, y);
       if(itr2 == editor.colItr){
-        beforeCursorX = false;
-        if(isAscii(*(editor.colItr))){
-          cursorWidth = fontPointW;
-        }
-      }
-      if(isAscii(*itr2)){
-        x += fontPointW*fontSize;
-        if(editor.line == itr && beforeCursorX){
-          cursorX += fontPointW*fontSize;
-        }
+        cursorX = x;
+        cursorY = y;
+        chrScreen.putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
       }else{
-        x += fontPointH*fontSize; // zenkaku
-        if(editor.line == itr && beforeCursorX){
-          cursorX += fontPointH*fontSize;
-        }
+        chrScreen.putChar(x, y, *itr2, TFT_WHITE, TFT_BLACK);
       }
-      if(x > 320-24){
-        x = 24;
-        if(editor.line == itr && beforeCursorX){
-          cursorX = 24;
-        }
-        y += fontPointH * fontSize;
-        if(beforeCursorY && beforeCursorX){
-          cursorY += fontPointH*fontSize;
-        }
-      }
+      x ++;
     }
-    if(editor.line == itr){
-      beforeCursorY = false;
+    if(editor.line == itr && itr->end() == editor.colItr){
+      chrScreen.putChar(x, y, 0, TFT_BLACK, TFT_WHITE);
+      cursorX = x;
+      cursorY = y;
     }
-    if(beforeCursorY){
-      cursorY += fontPointH*fontSize;
+    x = 0;
+    y ++;
+    if(y == chrScreen.getMaxLine() - 2){
+      break;
     }
   }
+  chrScreen.clearLine(y, TFT_WHITE, TFT_BLACK);
 
   // draw un-decided characters
   x = cursorX;
   y = cursorY;
-  lcd.setTextColor(0x000000U, 0xFFFFFFU);
+
   bool hasRawInputs = false;
   for(itr2 = editor.rawInputs.begin(); itr2 != editor.rawInputs.end(); itr2 ++){
     char utf8[4];
-    utf16CharToUtf8(*itr2, utf8);
-    lcd.drawString(utf8, x, y);
-    x += fontPointH*fontSize;
+    chrScreen.putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
+    x ++;
     hasRawInputs = true;
   }
   if(!hasRawInputs){
     if(editor.shiin1 != 0){
-      lcd.drawChar((char)editor.shiin1, x, y + fontPointH);
-      x += fontPointW*fontSize;
+      chrScreen.putChar(x, y,(wchar_t)editor.shiin1, TFT_BLACK, TFT_WHITE);
+      x ++;
     }
     if(editor.shiin2 != 0){
-      lcd.drawChar((char)editor.shiin2, x, y + fontPointH);
-      x += fontPointW*fontSize;
+      chrScreen.putChar(x, y, (wchar_t)editor.shiin2, TFT_BLACK, TFT_WHITE);
+      x ++;
     }
   }
 
   // mode line
-  lcd.setTextColor(0x000000U, 0xFFFFFFU);
-  lcd.setCursor(320 - fontPointH*3*fontSize, 240 - 2 * fontPointH * fontSize);
   switch(editor.kanjiMode){
-    case KanjiMode::DIRECT: lcd.print("[A]"); break;
-    case KanjiMode::KATA: lcd.print("[ア]"); break;
-    case KanjiMode::ROME: lcd.print("[あ]"); break;
-    case KanjiMode::KANJI: lcd.print("[漢]"); break;
+    case KanjiMode::DIRECT: chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[A]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KATA:   chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[ア]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::ROME:   chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[あ]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KANJI:  chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[漢]", TFT_BLACK, TFT_WHITE); break;
     case KanjiMode::HENKAN: break;
   }
 
-  // draw cursor
-  lcd.drawRect(cursorX, cursorY, cursorWidth, fontPointH*fontSize, WHITE);
-
-  Serial.print("xy:");
-  Serial.print(editor.colItr - editor.line->begin());
-  Serial.print(",");
-  Serial.println(editor.line - editor.lines.begin());
-
-  // draw kanji list
+  x = 0;
+  y = chrScreen.getMaxLine() - 2;
+  chrScreen.clearLine(y, TFT_WHITE, TFT_BLACK);
   if(editor.kanjiMode == KanjiMode::HENKAN){
-    lcd.setCursor(0, 240 - 2 * fontPointH * fontSize);
     for(vector<string>:: iterator kanji = editor.kanjiList.begin(); kanji != editor.kanjiList.end(); kanji ++){
+      int16_t fg = TFT_WHITE;
+      int16_t bg = TFT_BLACK;
       if(kanji == editor.kanjiListItr){
-        lcd.setTextColor(0x000000U, 0xFFFFFFU);
-      }else{
-        lcd.setTextColor(0xFFFFFFU);
+        fg = TFT_BLACK;
+        bg = TFT_WHITE;
       }
       // kanji is utf8
       const char* k = kanji->c_str();
-      lcd.print(k);
-      lcd.print(' ');
+      wchar_t w;
+      while(*k != 0){
+        size_t n = utf8CharToUtf16((char*)k, &w);
+        //lcd.print(k);
+        chrScreen.putChar(x, y, w, fg, bg);
+        x ++;
+        k += n;
+      }
+      chrScreen.putChar(x, y, L' ', fg, bg);
+      x ++;
+      // TODO: overflow x
     }
   }
+
+  chrScreen.draw(lcd);
 }
 
 class KbdRptParser : public KeyboardReportParser
@@ -319,6 +291,7 @@ void setup()
   HidKeyboard.SetReportParser(0, &Prs);
   lcd.println("Start");
 
+  chrScreen.init(320, 240);
   editor.initEditor();
 
   lcd.clear(BLACK);

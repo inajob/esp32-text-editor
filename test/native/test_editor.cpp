@@ -2,6 +2,7 @@
 #include <editor.h>
 #include <dicttool.h>
 #include <string>
+#include "test_chrscreen.h"
 
 using namespace std;
 KanjiEditor editor;
@@ -296,4 +297,5 @@ int main(int argc, char **argv){
   RUN_TEST(test_henkan2);
   RUN_TEST(test_henkan_ng);
   RUN_TEST(test_henkan_bs);
+  chrscreen_test();
 }
