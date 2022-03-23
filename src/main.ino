@@ -30,7 +30,6 @@ Shell shell;
 ChrScreen chrScreen;
 
 void draw(){
-  // == TODO: move to lib ==
   app->draw();
   chrScreen.draw(lcd);
 }
@@ -71,55 +70,8 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
   Serial.print("DN ");
   PrintKey(mod, key);
   uint8_t c = OemToAscii(mod, key);
-/*
-  // BS key == 0x2A
-  if(key == 0x2A){
-    shell.backSpace();
-    draw();
-    return;
-  }
-  // <- 0x50
-  if(key == 0x50){
-    shell.left();
-    draw();
-    return;
-  }
-  // -> 0x4F
-  if(key == 0x4F){
-    shell.right();
-    draw();
-    return;
-  }
-  // ^ 0x52
-  if(key == 0x52){
-    shell.up();
-    draw();
-    return;
-  }
-  // v 0x51
-  if(key == 0x51){
-    shell.down();
-    draw();
-    return;
-  }
-
-  if (c == '\r'){
-    shell.enter();
-    draw();
-    return;
-  }
-  if (c){
-    //uint8_t shift = (mod & 0x22);
-    uint8_t ctrl = (mod & 0x11);
-    //OnKeyPressed(c); // no use now
-    //editor.onCharRoma(c, ctrl);
-    shell.onChar(c);
-    draw();
-  }
-  */
   uint8_t ctrl = (mod & 0x11);
   app->onkeydown(key, c, ctrl);
-  //shell.onkeydown(key, c, ctrl);
 
   if(app->nextTask != NULL){
     Task* p = app;
@@ -178,8 +130,6 @@ void KbdRptParser::OnKeyPressed(uint8_t c)
   Serial.println((char)c);
   //M5.Lcd.print((char)c);
 
-  //editor.onCharRoma(c);
-  //onChar(c);
   draw();
 };
 
