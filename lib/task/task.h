@@ -18,10 +18,12 @@ class Task{
   public:
   ChrScreen* chrScreen;
   Task* nextTask = NULL;
+  bool isTerminate = false;
   virtual void init();
   virtual void setChrScreen(ChrScreen* chrScreen);
   virtual void onkeydown(char key, char c, bool ctrl);
   virtual void draw();
   virtual void setNextTask(Task* t);
+  virtual void terminate();
 };
 #endif

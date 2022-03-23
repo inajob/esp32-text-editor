@@ -8,3 +8,6 @@ void Task::draw(){}
 void Task::setNextTask(Task* t){
   nextTask = t;
 }
+void Task::terminate(){
+  isTerminate = true;
+}

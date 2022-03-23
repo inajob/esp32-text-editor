@@ -295,6 +295,8 @@ void KanjiEditor::onkeydown(char key, char c, bool ctrl){
     default:
       if(c == '\r'){
         enter();
+      }else if(c == 'x' && ctrl){
+        terminate();
       }else{
         onCharRoma(c,ctrl);
       }

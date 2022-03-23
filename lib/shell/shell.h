@@ -13,6 +13,7 @@ using namespace std;
 #include <task.h>
 #include <editor.h>
 #include <chrscreen.h>
+#include <util.h>
 
 #ifndef SHELL_H
 #define SHELL_H

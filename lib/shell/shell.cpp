@@ -54,6 +54,8 @@ void Shell::enter(){
     i ++;
   }
   cmd[i] = 0;
+  vector<vector<wchar_t>> args = split(rawInputs);
+  to_wchar(args.at(0), cmd, 256);
 
   if(wcsncmp(cmd, L"ls", 256) == 0){
 #ifdef ESP32
