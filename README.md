@@ -15,6 +15,7 @@ M5StackにUSB Host Shieldを接続し、キーボードをつなげた状態で�
 
 - https://okiraku-camera.tokyo/blog/?p=8333
   - USB Host Shieldに改造が必要です。
+- 改造が面倒な場合は、[M5Stack用MAX3421E搭載 USBモジュール](https://amzn.to/3D4Y7tX)を使うと良いです。
 
 
 ### Setup dictionary
