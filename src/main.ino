@@ -16,6 +16,7 @@
 #define LGFX_M5STACK
 #include <LovyanGFX.hpp>
 
+#include <shell.h>
 #include <editor.h>
 #include <chrscreen.h>
 
@@ -23,105 +24,14 @@ LGFX lcd;
 const int fontSize = 1;
 const int fontPointH = 12;
 const int fontPointW = 6;
+Task* app;
 KanjiEditor editor;
+Shell shell;
 ChrScreen chrScreen;
 
 void draw(){
   // == TODO: move to lib ==
-
-  int cursorX = 0;
-  int cursorY = 0;
-
-  // draw decided characters
-  vector<vector<wchar_t>>::iterator itr;
-  vector<wchar_t>::iterator itr2;
-  int x = 0, y = 0;
-  for(itr = editor.lines.begin(); itr != editor.lines.end(); itr ++){
-    chrScreen.clearLine(y, TFT_WHITE, TFT_BLACK);
-    chrScreen.putChar(0, y, (wchar_t)('0' + y/10), TFT_WHITE, TFT_BLACK);
-    chrScreen.putChar(1, y, (wchar_t)('0' + y%10), TFT_WHITE, TFT_BLACK);
-    x += 3;
-    for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
-      if(itr2 == editor.colItr){
-        cursorX = x;
-        cursorY = y;
-        chrScreen.putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
-      }else{
-        chrScreen.putChar(x, y, *itr2, TFT_WHITE, TFT_BLACK);
-      }
-      x ++;
-    }
-    if(editor.line == itr && itr->end() == editor.colItr){
-      chrScreen.putChar(x, y, 0, TFT_BLACK, TFT_WHITE);
-      cursorX = x;
-      cursorY = y;
-    }
-    x = 0;
-    y ++;
-    if(y == chrScreen.getMaxLine() - 2){
-      break;
-    }
-  }
-  chrScreen.clearLine(y, TFT_WHITE, TFT_BLACK);
-
-  // draw un-decided characters
-  x = cursorX;
-  y = cursorY;
-
-  bool hasRawInputs = false;
-  for(itr2 = editor.rawInputs.begin(); itr2 != editor.rawInputs.end(); itr2 ++){
-    char utf8[4];
-    chrScreen.putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
-    x ++;
-    hasRawInputs = true;
-  }
-  if(!hasRawInputs){
-    if(editor.shiin1 != 0){
-      chrScreen.putChar(x, y,(wchar_t)editor.shiin1, TFT_BLACK, TFT_WHITE);
-      x ++;
-    }
-    if(editor.shiin2 != 0){
-      chrScreen.putChar(x, y, (wchar_t)editor.shiin2, TFT_BLACK, TFT_WHITE);
-      x ++;
-    }
-  }
-
-  // mode line
-  switch(editor.kanjiMode){
-    case KanjiMode::DIRECT: chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[A]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::KATA:   chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[ア]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::ROME:   chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[あ]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::KANJI:  chrScreen.putString(0, chrScreen.getMaxLine() - 1, L"[漢]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::HENKAN: break;
-  }
-
-  x = 0;
-  y = chrScreen.getMaxLine() - 2;
-  chrScreen.clearLine(y, TFT_WHITE, TFT_BLACK);
-  if(editor.kanjiMode == KanjiMode::HENKAN){
-    for(vector<string>:: iterator kanji = editor.kanjiList.begin(); kanji != editor.kanjiList.end(); kanji ++){
-      int16_t fg = TFT_WHITE;
-      int16_t bg = TFT_BLACK;
-      if(kanji == editor.kanjiListItr){
-        fg = TFT_BLACK;
-        bg = TFT_WHITE;
-      }
-      // kanji is utf8
-      const char* k = kanji->c_str();
-      wchar_t w;
-      while(*k != 0){
-        size_t n = utf8CharToUtf16((char*)k, &w);
-        //lcd.print(k);
-        chrScreen.putChar(x, y, w, fg, bg);
-        x ++;
-        k += n;
-      }
-      chrScreen.putChar(x, y, L' ', fg, bg);
-      x ++;
-      // TODO: overflow x
-    }
-  }
-
+  app->draw();
   chrScreen.draw(lcd);
 }
 
@@ -161,40 +71,40 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
   Serial.print("DN ");
   PrintKey(mod, key);
   uint8_t c = OemToAscii(mod, key);
-
+/*
   // BS key == 0x2A
   if(key == 0x2A){
-    editor.backSpace();
+    shell.backSpace();
     draw();
     return;
   }
   // <- 0x50
   if(key == 0x50){
-    editor.left();
+    shell.left();
     draw();
     return;
   }
   // -> 0x4F
   if(key == 0x4F){
-    editor.right();
+    shell.right();
     draw();
     return;
   }
   // ^ 0x52
   if(key == 0x52){
-    editor.up();
+    shell.up();
     draw();
     return;
   }
   // v 0x51
   if(key == 0x51){
-    editor.down();
+    shell.down();
     draw();
     return;
   }
 
   if (c == '\r'){
-    editor.enter();
+    shell.enter();
     draw();
     return;
   }
@@ -202,9 +112,21 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
     //uint8_t shift = (mod & 0x22);
     uint8_t ctrl = (mod & 0x11);
     //OnKeyPressed(c); // no use now
-    editor.onCharRoma(c, ctrl);
+    //editor.onCharRoma(c, ctrl);
+    shell.onChar(c);
     draw();
   }
+  */
+  uint8_t ctrl = (mod & 0x11);
+  app->onkeydown(key, c, ctrl);
+  //shell.onkeydown(key, c, ctrl);
+
+  if(app->nextTask != NULL){
+    Task* p = app;
+    app = app->nextTask;
+    p->nextTask = NULL;
+  }
+  draw();
 }
 
 void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
@@ -292,7 +214,14 @@ void setup()
   lcd.println("Start");
 
   chrScreen.init(320, 240);
-  editor.initEditor();
+  editor.setChrScreen(&chrScreen);
+  editor.init();
+
+  shell.setChrScreen(&chrScreen);
+  shell.init();
+  shell.editor = &editor;
+
+  app = &shell;
 
   lcd.clear(BLACK);
   draw();

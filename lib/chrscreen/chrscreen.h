@@ -33,6 +33,7 @@ class ChrScreen {
   void draw(LGFX lgfx);
 #endif
   void putString(int x, int y, wchar_t* w, int16_t fg, int16_t bg);
+  void putString(int x, int y, char* w, int16_t fg, int16_t bg);
   void putChar(int x, int y, wchar_t w, int16_t fg, int16_t bg);
   void clearLine(int y, int16_t fg, int16_t bg);
   wchar_t getChar(int x, int y);

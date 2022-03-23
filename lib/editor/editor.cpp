@@ -1,10 +1,36 @@
 #include <editor.h>
 
-void Editor::initEditor(){
+void Editor::init(){
   lines.clear();
   line = lines.begin(); // lines
   line = lines.insert(line, vector<wchar_t>());
   colItr = line->begin(); // line
+}
+
+void Editor::onkeydown(char key, char c, bool ctrl){
+  switch(key){
+    case 0x2A: // BS
+      backSpace();
+    break;
+    case 0x50: // <-
+      left();
+    break;
+    case 0x4F: // ->
+      right();
+    break;
+    case 0x52: // ^
+      up();
+    break;
+    case 0x51: // v
+      down();
+    break;
+    default:
+      if(c == '\r'){
+        enter();
+      }else{
+        onChar(c);
+      }
+  }
 }
 
 void Editor::backSpace(){
@@ -85,7 +111,7 @@ void Editor::onChar(wchar_t c){
 
 void Editor::load(){
 #ifdef ESP32
-  initEditor();
+  init();
   File fp;
   fp = SPIFFS.open("/test.txt" , "r");
   while(fp.available()){
@@ -245,10 +271,36 @@ size_t utf8CharToUtf16(char* utf8, wchar_t* utf16){
 }
 
 
-void KanjiEditor::initEditor(){
-  Editor::initEditor();
+void KanjiEditor::init(){
+  Editor::init();
   dictPath = "/SKK-JISYO.S.txt";
 }
+void KanjiEditor::onkeydown(char key, char c, bool ctrl){
+  switch(key){
+    case 0x2A: // BS
+      backSpace();
+    break;
+    case 0x50: // <-
+      left();
+    break;
+    case 0x4F: // ->
+      right();
+    break;
+    case 0x52: // ^
+      up();
+    break;
+    case 0x51: // v
+      down();
+    break;
+    default:
+      if(c == '\r'){
+        enter();
+      }else{
+        onCharRoma(c,ctrl);
+      }
+  }
+}
+
 void KanjiEditor::backSpace(){
   if(kanjiMode == KanjiMode::ROME || kanjiMode == KanjiMode::KATA || kanjiMode == KanjiMode::DIRECT){
     if(shiin2 != 0){
@@ -529,4 +581,96 @@ void KanjiEditor::prevKanji(){
   }else{
     kanjiListItr = kanjiList.end() - 1;
   }
+}
+
+void KanjiEditor::draw(){
+  // draw decided characters
+  vector<vector<wchar_t>>::iterator itr;
+  vector<wchar_t>::iterator itr2;
+  int x = 0, y = 0;
+  int cursorX = 0, cursorY = 0;
+  for(itr = lines.begin(); itr != lines.end(); itr ++){
+    chrScreen->clearLine(y, TFT_WHITE, TFT_BLACK);
+    chrScreen->putChar(0, y, (wchar_t)('0' + y/10), TFT_WHITE, TFT_BLACK);
+    chrScreen->putChar(1, y, (wchar_t)('0' + y%10), TFT_WHITE, TFT_BLACK);
+    x += 3;
+    for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
+      if(itr2 == colItr){ // cursor
+        chrScreen->putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
+        cursorX = x;
+        cursorY = y;
+      }else{
+        chrScreen->putChar(x, y, *itr2, TFT_WHITE, TFT_BLACK);
+      }
+      x ++;
+    }
+    if(line == itr && itr->end() == colItr){ // cursor
+      chrScreen->putChar(x, y, 0, TFT_BLACK, TFT_WHITE);
+      cursorX = x;
+      cursorY = y;
+    }
+    x = 0;
+    y ++;
+    if(y == chrScreen->getMaxLine() - 2){
+      break;
+    }
+  }
+  chrScreen->clearLine(y, TFT_WHITE, TFT_BLACK);
+
+  // draw un-decided characters
+  x = cursorX;
+  y = cursorY;
+  bool hasRawInputs = false;
+  for(itr2 = rawInputs.begin(); itr2 != rawInputs.end(); itr2 ++){
+    char utf8[4];
+    chrScreen->putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
+    x ++;
+    hasRawInputs = true;
+  }
+  if(!hasRawInputs){
+    if(shiin1 != 0){
+      chrScreen->putChar(x, y,(wchar_t)shiin1, TFT_BLACK, TFT_WHITE);
+      x ++;
+    }
+    if(shiin2 != 0){
+      chrScreen->putChar(x, y, (wchar_t)shiin2, TFT_BLACK, TFT_WHITE);
+      x ++;
+    }
+  }
+
+  // mode line
+  switch(kanjiMode){
+    case KanjiMode::DIRECT: chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[A]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KATA:   chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[ア]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::ROME:   chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[あ]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KANJI:  chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[漢]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::HENKAN: break;
+  }
+
+  x = 0;
+  y = chrScreen->getMaxLine() - 2;
+  chrScreen->clearLine(y, TFT_WHITE, TFT_BLACK);
+  if(kanjiMode == KanjiMode::HENKAN){
+    for(vector<string>:: iterator kanji = kanjiList.begin(); kanji != kanjiList.end(); kanji ++){
+      int16_t fg = TFT_WHITE;
+      int16_t bg = TFT_BLACK;
+      if(kanji == kanjiListItr){
+        fg = TFT_BLACK;
+        bg = TFT_WHITE;
+      }
+      // kanji is utf8
+      const char* k = kanji->c_str();
+      wchar_t w;
+      while(*k != 0){
+        size_t n = utf8CharToUtf16((char*)k, &w);
+        chrScreen->putChar(x, y, w, fg, bg);
+        x ++;
+        k += n;
+      }
+      chrScreen->putChar(x, y, L' ', fg, bg);
+      x ++;
+      // TODO: overflow x
+    }
+  }
+
 }

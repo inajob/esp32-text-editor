@@ -22,7 +22,7 @@ int getLineNo(){
 }
 
 void test_editor_init(void){
-  editor.initEditor();
+  editor.init();
   // init lines is 1
   TEST_ASSERT_EQUAL_INT32_MESSAGE(1, getMaxLines(), "max_lines is 1 in initial");
   // int col is 0
@@ -96,7 +96,7 @@ void test_editor_move_cursor(void){
 }
 
 void test_editor_rome_conversion(void){
-  editor.initEditor();
+  editor.init();
 
   editor.onCharRoma('a');
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L'あ', editor.lines.at(0).at(0), "rome a");
@@ -159,7 +159,7 @@ void test_dicttool_search(){
 }
 
 void test_henkan(){
-  editor.initEditor();
+  editor.init();
   editor.dictPath = "data/SKK-JISYO.S.txt";
 
   editor.kanjiMode = KanjiMode::KANJI;
@@ -186,7 +186,7 @@ void test_henkan(){
 }
 
 void test_henkan2(){
-  editor.initEditor();
+  editor.init();
   editor.dictPath = "data/SKK-JISYO.S.txt";
 
   editor.onCharRoma('K');
@@ -208,7 +208,7 @@ void test_henkan2(){
 
 }
 void test_henkan_bs(){
-  editor.initEditor();
+  editor.init();
   editor.kanjiList.clear();
   editor.kanjiListItr = editor.kanjiList.begin();
 
@@ -234,7 +234,7 @@ void test_henkan_bs(){
 }
 
 void test_henkan_ng(){
-  editor.initEditor();
+  editor.init();
   editor.kanjiList.clear();
   editor.kanjiListItr = editor.kanjiList.begin();
 
@@ -263,7 +263,7 @@ void test_henkan_ng(){
 
 
 void test_kata(){
-  editor.initEditor();
+  editor.init();
 
   editor.onCharRoma('q');
   editor.onCharRoma('a');
@@ -275,7 +275,7 @@ void test_kata(){
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L'カ', editor.lines.at(0).at(0), "rome ka");
 }
 void test_direct(){
-  editor.initEditor();
+  editor.init();
   editor.kanjiMode = KanjiMode::ROME;
 
   editor.onCharRoma('l');

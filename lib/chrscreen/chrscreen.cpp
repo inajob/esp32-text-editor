@@ -73,6 +73,14 @@ void ChrScreen::putString(int x, int y, wchar_t* wp, int16_t fg, int16_t bg){
   }
 }
 
+void ChrScreen::putString(int x, int y, char* cp, int16_t fg, int16_t bg){
+  while(*cp != 0){
+    putChar(x, y, *cp, fg, bg);
+    cp ++;
+    x ++;
+  }
+}
+
 void ChrScreen::putChar(int x, int y, wchar_t w, int16_t fg, int16_t bg){
   Chr c = {w, fg, bg, true};
   if(y >= lines.size() || x >= lines.at(y).size()){
