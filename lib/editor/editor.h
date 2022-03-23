@@ -35,6 +35,7 @@ class Editor : public Task{
   vector<vector<wchar_t>> lines;
   vector<vector<wchar_t>> ::iterator line;
   vector<wchar_t> ::iterator colItr;
+  char filename[256];
 
   virtual void init();
   virtual void onkeydown(char key, char c, bool ctrl);

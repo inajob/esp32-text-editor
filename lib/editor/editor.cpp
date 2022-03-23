@@ -113,7 +113,7 @@ void Editor::load(){
 #ifdef ESP32
   init();
   File fp;
-  fp = SPIFFS.open("/test.txt" , "r");
+  fp = SPIFFS.open(filename , "r");
   while(fp.available()){
     char c1 = fp.read();
     char c2 = fp.read();
@@ -134,7 +134,7 @@ void Editor::save(){
   vector<wchar_t>::iterator itr2;
 
   File fp;
-  fp = SPIFFS.open("/test.txt" , "w");
+  fp = SPIFFS.open(filename , "w");
   for(itr = lines.begin(); itr != lines.end(); itr ++){
     for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
       char c1 = (*itr2 >> 8);
@@ -297,6 +297,7 @@ void KanjiEditor::onkeydown(char key, char c, bool ctrl){
         enter();
       }else if(c == 'x' && ctrl){
         terminate();
+        filename[0] = 0; // todo: implement clearFileName
       }else{
         onCharRoma(c,ctrl);
       }
@@ -648,6 +649,8 @@ void KanjiEditor::draw(){
     case KanjiMode::KANJI:  chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[漢]", TFT_BLACK, TFT_WHITE); break;
     case KanjiMode::HENKAN: break;
   }
+
+  chrScreen->putString(5, chrScreen->getMaxLine() - 1, filename, TFT_BLACK, TFT_WHITE);
 
   x = 0;
   y = chrScreen->getMaxLine() - 2;

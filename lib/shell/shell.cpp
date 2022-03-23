@@ -2,6 +2,11 @@
 
 void Shell::init(){
   rawInputsItr = rawInputs.begin();
+  for(int i = 0; i < chrScreen->getMaxLine(); i ++){
+    chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
+  }
+  x = y = 0;
+
   chrScreen->putChar(x ++, y, L'>', TFT_WHITE, TFT_BLACK);
   chrScreen->putChar(x ++, y, L' ', TFT_WHITE, TFT_BLACK);
 }
@@ -48,6 +53,13 @@ void Shell::enter(){
   nextLine();
   int i = 0;
   wchar_t cmd[256];
+  char debug[256];
+  if(rawInputs.size() == 0){
+    chrScreen->putChar(x ++, y, L'>', TFT_WHITE, TFT_BLACK);
+    chrScreen->putChar(x ++, y, L' ', TFT_WHITE, TFT_BLACK);
+
+    return;
+  }
   for(vector<wchar_t>::iterator itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
     chrScreen->putChar(x ++, y, *itr, TFT_WHITE, TFT_BLACK);
     cmd[i] = *itr;
@@ -74,20 +86,36 @@ void Shell::enter(){
     x = 0;
     y = 0;
   }else if(wcsncmp(cmd, L"edit", 256) == 0){
+    if(args.size() > 1){
+      to_char(args.at(1), editor->filename, 256); // todo: implement setter
+      editor->load();
+    }
     setNextTask(editor);
     for(int i = 0; i < chrScreen->getMaxLine(); i ++){
       chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
     }
+    rawInputs.clear();
     return;
+  }else if(wcsncmp(cmd, L"rm", 256) == 0){
+    if(args.size() > 1){
+      char filename[256];
+      to_char(args.at(1), filename, 256);
+#ifdef ESP32
+      SPIFFS.remove(filename);
+#endif
+      sprintf(debug, "%s removed", filename);
+      chrScreen->putString(0, y, debug, TFT_WHITE, TFT_BLACK);
+      nextLine();
+    }
   }else{
     chrScreen->putString(0, y, L"unknown command", TFT_WHITE, TFT_BLACK);
+    nextLine();
   }
 
   x = 0;
   rawInputs.clear();
   rawInputsItr = rawInputs.begin();
 
-  nextLine();
   chrScreen->putChar(x ++, y, L'>', TFT_WHITE, TFT_BLACK);
   chrScreen->putChar(x ++, y, L' ', TFT_WHITE, TFT_BLACK);
 }

@@ -79,6 +79,8 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
     p->nextTask = NULL;
   }
   if(app->isTerminate){ // TODO: shell is special app like `init`
+    app->isTerminate = false; // for next execute
+    shell.init(); // clear terminal
     app = &shell;
   }
   draw();

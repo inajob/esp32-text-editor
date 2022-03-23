@@ -7,8 +7,18 @@ void to_wchar(vector<wchar_t> line, wchar_t* w, int n){
     n --;
     if(n == 1)break;
   }
-  w = 0;
+  *w = 0;
 }
+void to_char(vector<wchar_t> line, char* c, int n){
+  for(vector<wchar_t>::iterator itr = line.begin(); itr != line.end(); itr ++){
+    *c = (char)*itr;
+    c ++;
+    n --;
+    if(n == 1)break;
+  }
+  *c = 0;
+}
+
 vector<vector<wchar_t>> split(vector<wchar_t> line){
   vector<vector<wchar_t>> ret;
   vector<wchar_t> now;
