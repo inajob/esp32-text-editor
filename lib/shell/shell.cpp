@@ -36,6 +36,9 @@ void Shell::onkeydown(char key, char c, bool ctrl){
   }
 }
 void Shell::backSpace(){
+  if(rawInputs.size() == 0){
+    return;
+  }
   rawInputs.pop_back();
   x -= 1;
   chrScreen->putChar(x, y, 0, TFT_WHITE, TFT_BLACK);
