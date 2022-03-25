@@ -593,22 +593,25 @@ void KanjiEditor::draw(){
   int x = 0, y = 0;
   int cursorX = 0, cursorY = 0;
   for(itr = lines.begin(); itr != lines.end(); itr ++){
-    chrScreen->clearLine(y, TFT_WHITE, TFT_BLACK);
-    chrScreen->putChar(0, y, (wchar_t)('0' + y/10), TFT_WHITE, TFT_BLACK);
-    chrScreen->putChar(1, y, (wchar_t)('0' + y%10), TFT_WHITE, TFT_BLACK);
+    chrScreen->setCursor(0, y);
+    chrScreen->clearLine(y, TFT_WHITE, TFT_BLUE);
+    chrScreen->putChar((wchar_t)('0' + y/10), TFT_WHITE, TFT_BLACK);
+    chrScreen->putChar((wchar_t)('0' + y%10), TFT_WHITE, TFT_BLACK);
+    chrScreen->putChar(L' ', TFT_WHITE, TFT_BLACK);
     x += 3;
+
     for(itr2 = itr->begin(); itr2 != itr->end(); itr2 ++){
       if(itr2 == colItr){ // cursor
-        chrScreen->putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
+        chrScreen->putChar(*itr2, TFT_BLACK, TFT_WHITE);
         cursorX = x;
         cursorY = y;
       }else{
-        chrScreen->putChar(x, y, *itr2, TFT_WHITE, TFT_BLACK);
+        chrScreen->putChar(*itr2, TFT_WHITE, TFT_BLACK);
       }
       x ++;
     }
     if(line == itr && itr->end() == colItr){ // cursor
-      chrScreen->putChar(x, y, 0, TFT_BLACK, TFT_WHITE);
+      chrScreen->putChar(0, TFT_BLACK, TFT_WHITE);
       cursorX = x;
       cursorY = y;
     }
@@ -623,37 +626,43 @@ void KanjiEditor::draw(){
   // draw un-decided characters
   x = cursorX;
   y = cursorY;
+  chrScreen->setCursor(cursorX, cursorY);
+
   bool hasRawInputs = false;
   for(itr2 = rawInputs.begin(); itr2 != rawInputs.end(); itr2 ++){
     char utf8[4];
-    chrScreen->putChar(x, y, *itr2, TFT_BLACK, TFT_WHITE);
+    chrScreen->putChar(*itr2, TFT_BLACK, TFT_WHITE);
     x ++;
     hasRawInputs = true;
   }
   if(!hasRawInputs){
     if(shiin1 != 0){
-      chrScreen->putChar(x, y,(wchar_t)shiin1, TFT_BLACK, TFT_WHITE);
+      chrScreen->putChar((wchar_t)shiin1, TFT_BLACK, TFT_WHITE);
       x ++;
     }
     if(shiin2 != 0){
-      chrScreen->putChar(x, y, (wchar_t)shiin2, TFT_BLACK, TFT_WHITE);
+      chrScreen->putChar((wchar_t)shiin2, TFT_BLACK, TFT_WHITE);
       x ++;
     }
   }
 
   // mode line
+  chrScreen->setCursor(0, chrScreen->getMaxLine() - 1);
+  chrScreen->clearLine(chrScreen->getMaxLine() - 1, TFT_WHITE, TFT_BLACK);
   switch(kanjiMode){
-    case KanjiMode::DIRECT: chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[A]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::KATA:   chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[ア]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::ROME:   chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[あ]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::KANJI:  chrScreen->putString(0, chrScreen->getMaxLine() - 1, L"[漢]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::DIRECT: chrScreen->putString(L"[A]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KATA:   chrScreen->putString(L"[ア]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::ROME:   chrScreen->putString(L"[あ]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KANJI:  chrScreen->putString(L"[漢]", TFT_BLACK, TFT_WHITE); break;
     case KanjiMode::HENKAN: break;
   }
 
-  chrScreen->putString(5, chrScreen->getMaxLine() - 1, filename, TFT_BLACK, TFT_WHITE);
+  chrScreen->setCursor(5, chrScreen->getMaxLine() - 1);
+  chrScreen->putString(filename, TFT_BLACK, TFT_WHITE);
 
   x = 0;
   y = chrScreen->getMaxLine() - 2;
+  chrScreen->setCursor(x, y);
   chrScreen->clearLine(y, TFT_WHITE, TFT_BLACK);
   if(kanjiMode == KanjiMode::HENKAN){
     for(vector<string>:: iterator kanji = kanjiList.begin(); kanji != kanjiList.end(); kanji ++){
@@ -668,11 +677,11 @@ void KanjiEditor::draw(){
       wchar_t w;
       while(*k != 0){
         size_t n = utf8CharToUtf16((char*)k, &w);
-        chrScreen->putChar(x, y, w, fg, bg);
+        chrScreen->putChar(w, fg, bg);
         x ++;
         k += n;
       }
-      chrScreen->putChar(x, y, L' ', fg, bg);
+      chrScreen->putChar(L' ', fg, bg);
       x ++;
       // TODO: overflow x
     }

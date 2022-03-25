@@ -26,18 +26,24 @@ class ChrScreen {
 
   public:
   vector<vector<Chr>> lines;
-  int cursorCol = 0;
+  int cursorCol = 0; // wchar_t positoin
+  int cursorColPos = 0; // size position
   int cursorLine = 0;
   void init(int w, int h);
 #ifdef ESP32
   void draw(LGFX lgfx);
 #endif
-  void putString(int x, int y, wchar_t* w, int16_t fg, int16_t bg);
-  void putString(int x, int y, char* w, int16_t fg, int16_t bg);
-  void putChar(int x, int y, wchar_t w, int16_t fg, int16_t bg);
-  void clearLine(int y, int16_t fg, int16_t bg);
-  wchar_t getChar(int x, int y);
+  void setCursor(int col, int line);
+  void putString(wchar_t* w, int16_t fg, int16_t bg);
+  void putString(char* w, int16_t fg, int16_t bg);
+  void putChar(wchar_t w, int16_t fg, int16_t bg);
+  void back();
+  void nextLine();
+  void clearLine(int line, int16_t fg, int16_t bg);
+  wchar_t getChar(int col, int line);
+  int getCharSize(wchar_t w);
   int getMaxLine();
+  int getMaxColumn();
 };
 
 #endif

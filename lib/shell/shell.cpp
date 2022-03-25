@@ -5,10 +5,9 @@ void Shell::init(){
   for(int i = 0; i < chrScreen->getMaxLine(); i ++){
     chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
   }
-  x = y = 0;
-
-  chrScreen->putChar(x ++, y, L'>', TFT_WHITE, TFT_BLACK);
-  chrScreen->putChar(x ++, y, L' ', TFT_WHITE, TFT_BLACK);
+  chrScreen->setCursor(0, 0);
+  chrScreen->putChar(L'>', TFT_WHITE, TFT_BLACK);
+  chrScreen->putChar(L' ', TFT_WHITE, TFT_BLACK);
 }
 void Shell::onkeydown(char key, char c, bool ctrl){
   switch(key){
@@ -40,8 +39,9 @@ void Shell::backSpace(){
     return;
   }
   rawInputs.pop_back();
-  x -= 1;
-  chrScreen->putChar(x, y, 0, TFT_WHITE, TFT_BLACK);
+  chrScreen->back();
+  chrScreen->putChar(0, TFT_WHITE, TFT_BLACK);
+  chrScreen->back();
 }
 void Shell::right(){
 }
@@ -52,19 +52,18 @@ void Shell::up(){
 void Shell::down(){
 }
 void Shell::enter(){
-  x = 0;
   nextLine();
   int i = 0;
   wchar_t cmd[256];
   char debug[256];
   if(rawInputs.size() == 0){
-    chrScreen->putChar(x ++, y, L'>', TFT_WHITE, TFT_BLACK);
-    chrScreen->putChar(x ++, y, L' ', TFT_WHITE, TFT_BLACK);
+    chrScreen->putChar(L'>', TFT_WHITE, TFT_BLACK);
+    chrScreen->putChar(L' ', TFT_WHITE, TFT_BLACK);
 
     return;
   }
   for(vector<wchar_t>::iterator itr = rawInputs.begin(); itr != rawInputs.end(); itr ++){
-    chrScreen->putChar(x ++, y, *itr, TFT_WHITE, TFT_BLACK);
+    //chrScreen->putChar(*itr, TFT_WHITE, TFT_BLACK);
     cmd[i] = *itr;
     i ++;
   }
@@ -77,7 +76,7 @@ void Shell::enter(){
     File root = SPIFFS.open("/");
     File f = root.openNextFile();
     while(f){
-      chrScreen->putString(0, y, (char*)f.name(), TFT_WHITE, TFT_BLACK);
+      chrScreen->putString((char*)f.name(), TFT_WHITE, TFT_BLACK);
       f = root.openNextFile();
       nextLine();
     }
@@ -88,6 +87,7 @@ void Shell::enter(){
     }
     x = 0;
     y = 0;
+    chrScreen->setCursor(0, 0);
   }else if(wcsncmp(cmd, L"edit", 256) == 0){
     if(args.size() > 1){
       to_char(args.at(1), editor->filename, 256); // todo: implement setter
@@ -107,11 +107,11 @@ void Shell::enter(){
       SPIFFS.remove(filename);
 #endif
       sprintf(debug, "%s removed", filename);
-      chrScreen->putString(0, y, debug, TFT_WHITE, TFT_BLACK);
+      chrScreen->putString(debug, TFT_WHITE, TFT_BLACK);
       nextLine();
     }
   }else{
-    chrScreen->putString(0, y, L"unknown command", TFT_WHITE, TFT_BLACK);
+    chrScreen->putString(L"unknown command", TFT_WHITE, TFT_BLACK);
     nextLine();
   }
 
@@ -119,16 +119,13 @@ void Shell::enter(){
   rawInputs.clear();
   rawInputsItr = rawInputs.begin();
 
-  chrScreen->putChar(x ++, y, L'>', TFT_WHITE, TFT_BLACK);
-  chrScreen->putChar(x ++, y, L' ', TFT_WHITE, TFT_BLACK);
+  chrScreen->putChar(L'>', TFT_WHITE, TFT_BLACK);
+  chrScreen->putChar(L' ', TFT_WHITE, TFT_BLACK);
 }
 void Shell::onChar(wchar_t c){
-  chrScreen->putChar(x ++, y, c, TFT_WHITE, TFT_BLACK);
+  chrScreen->putChar(c, TFT_WHITE, TFT_BLACK);
   rawInputs.push_back(c);
 }
 void Shell::nextLine(){
-  y ++;
-  if(chrScreen->getMaxLine() == y){
-    y = 0;
-  }
+  chrScreen->nextLine();
 }

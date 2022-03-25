@@ -5,6 +5,9 @@
 void ChrScreen::init(int w, int h){
   vector<vector<Chr>> ::iterator line;
   screenWidth = w;
+  cursorCol = 0;
+  cursorColPos = 0;
+  cursorLine = 0;
 
   // create character buffer
   for(int i = 0; i < h/(fontPointH * fontScale); i ++){
@@ -16,6 +19,7 @@ void ChrScreen::init(int w, int h){
 void ChrScreen::draw(LGFX lgfx){
   vector<vector<Chr>>::iterator itr;
   vector<Chr>::iterator itr2;
+  lgfx.setTextSize(fontScale, fontScale);
   int x = 0;
   int y = 0;
 
@@ -65,39 +69,74 @@ void ChrScreen::draw(LGFX lgfx){
 }
 #endif
 
-void ChrScreen::putString(int x, int y, wchar_t* wp, int16_t fg, int16_t bg){
+void ChrScreen::setCursor(int col, int line){
+  cursorCol = col;
+  cursorLine = line;
+  // TODO: cursorColPos
+}
+
+void ChrScreen::putString(wchar_t* wp, int16_t fg, int16_t bg){
   while(*wp != 0){
-    putChar(x, y, *wp, fg, bg);
+    putChar(*wp, fg, bg);
     wp ++;
-    x ++;
   }
 }
 
-void ChrScreen::putString(int x, int y, char* cp, int16_t fg, int16_t bg){
+void ChrScreen::putString(char* cp, int16_t fg, int16_t bg){
   while(*cp != 0){
-    putChar(x, y, *cp, fg, bg);
+    putChar(*cp, fg, bg);
     cp ++;
-    x ++;
   }
 }
 
-void ChrScreen::putChar(int x, int y, wchar_t w, int16_t fg, int16_t bg){
+void ChrScreen::putChar(wchar_t w, int16_t fg, int16_t bg){
   Chr c = {w, fg, bg, true};
-  if(y >= lines.size() || x >= lines.at(y).size()){
+  //if(cursorColPos + getCharSize(w) > screenWidth){ // folding
+  //  cursorColPos = 0;
+  //  cursorCol = 0;
+  //  cursorLine ++;
+  //}
+  if(cursorLine >= lines.size() || cursorCol >= lines.at(cursorLine).size()){
     return;
   }
-  lines.at(y).at(x) = c;
+
+  lines.at(cursorLine).at(cursorCol) = c;
+  cursorCol ++;
+  cursorColPos += getCharSize(w);
 }
-void ChrScreen::clearLine(int y, int16_t fg, int16_t bg){
+void ChrScreen::back(){
+  if(cursorCol > 0){
+    cursorCol --;
+  }
+}
+void ChrScreen::nextLine(){
+  cursorCol = 0;
+  cursorColPos = 0;
+  cursorLine ++;
+  if(cursorLine >= lines.size()){
+    cursorLine = 0;
+  }
+}
+void ChrScreen::clearLine(int line, int16_t fg, int16_t bg){
   Chr c = {0, fg, bg, true};
   vector<Chr>::iterator itr2;
-  for(itr2 = lines.at(y).begin(); itr2 != lines.at(y).end(); itr2++){
+  for(itr2 = lines.at(line).begin(); itr2 != lines.at(line).end(); itr2++){
     *itr2 = c;
   }
 }
-wchar_t ChrScreen::getChar(int x, int y){
-  return lines.at(y).at(x).w;
+wchar_t ChrScreen::getChar(int col, int line){
+  return lines.at(line).at(col).w;
+}
+int ChrScreen::getCharSize(wchar_t w){
+  if(isAscii(w)){
+    return fontPointW * fontScale;
+  }else{
+    return fontPointW * 2 * fontScale;
+  }
 }
 int ChrScreen::getMaxLine(){
   return lines.size();
+}
+int ChrScreen::getMaxColumn(){
+  return screenWidth / fontPointW;
 }
