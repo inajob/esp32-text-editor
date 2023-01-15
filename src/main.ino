@@ -17,7 +17,8 @@
 #include <LovyanGFX.hpp>
 
 #include <shell.h>
-#include <editor.h>
+//#include <editor.h>
+#include <fep.h>
 #include <chrscreen.h>
 
 LGFX lcd;
@@ -25,12 +26,14 @@ const int fontSize = 1;
 const int fontPointH = 12;
 const int fontPointW = 6;
 Task* app;
-KanjiEditor editor;
+//KanjiEditor editor;
 Shell shell;
 ChrScreen chrScreen;
+KanjiFep fep;
 
 void draw(){
   app->draw();
+  fep.draw();
   chrScreen.draw(lcd);
 }
 
@@ -76,12 +79,14 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
   if(app->nextTask != NULL){
     Task* p = app;
     app = app->nextTask;
+    fep.setParentTask(app);
     p->nextTask = NULL;
   }
   if(app->isTerminate){ // TODO: shell is special app like `init`
     app->isTerminate = false; // for next execute
     shell.init(); // clear terminal
     app = &shell;
+    fep.setParentTask(app);
   }
   draw();
 }
@@ -169,14 +174,21 @@ void setup()
   lcd.println("Start");
 
   chrScreen.init(320, 240);
-  editor.setChrScreen(&chrScreen);
-  editor.init();
+
+  fep.setChrScreen(&chrScreen);
+  fep.init();
+
+  //editor.setChrScreen(&chrScreen);
+  //editor.setFep(&fep);
+  //editor.init();
 
   shell.setChrScreen(&chrScreen);
+  shell.setFep(&fep);
   shell.init();
-  shell.editor = &editor;
+  //shell.editor = &editor;
 
   app = &shell;
+  fep.setParentTask(app);
 
   lcd.clear(BLACK);
   draw();

@@ -11,7 +11,7 @@ using namespace std;
 #endif
 
 #include <task.h>
-#include <editor.h>
+//#include <editor.h>
 #include <chrscreen.h>
 #include <util.h>
 
@@ -26,17 +26,17 @@ class Shell: public Task{
 
   vector<wchar_t> rawInputs;
   vector<wchar_t> ::iterator rawInputsItr;
-  KanjiEditor* editor;
+  //KanjiEditor* editor;
 
   virtual void init();
-  virtual void onkeydown(char key, char c, bool ctrl);
+  virtual bool onkeydown(char key, char c, bool ctrl);
   virtual void backSpace();
   virtual void right();
   virtual void left();
   virtual void up();
   virtual void down();
   virtual void enter();
-  virtual void onChar(wchar_t c);
+  virtual bool onChar(wchar_t c);
   virtual void nextLine();
 };
 #endif

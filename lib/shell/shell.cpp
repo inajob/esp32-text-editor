@@ -9,7 +9,13 @@ void Shell::init(){
   chrScreen->putChar(L'>', TFT_WHITE, TFT_BLACK);
   chrScreen->putChar(L' ', TFT_WHITE, TFT_BLACK);
 }
-void Shell::onkeydown(char key, char c, bool ctrl){
+bool Shell::onkeydown(char key, char c, bool ctrl){
+  if(fep){
+    bool through = fep->onkeydown(key, c, ctrl);
+    if(!through){
+      return false;
+    }
+  }
   switch(key){
     case 0x2A: // BS
       backSpace();
@@ -33,6 +39,7 @@ void Shell::onkeydown(char key, char c, bool ctrl){
         onChar(c);
       }
   }
+  return true;
 }
 void Shell::backSpace(){
   if(rawInputs.size() == 0){
@@ -41,6 +48,8 @@ void Shell::backSpace(){
   rawInputs.pop_back();
   chrScreen->back();
   chrScreen->putChar(0, TFT_WHITE, TFT_BLACK);
+  chrScreen->putChar(0, TFT_WHITE, TFT_BLACK);
+  chrScreen->back();
   chrScreen->back();
 }
 void Shell::right(){
@@ -88,7 +97,7 @@ void Shell::enter(){
     x = 0;
     y = 0;
     chrScreen->setCursor(0, 0);
-  }else if(wcsncmp(cmd, L"edit", 256) == 0){
+  }/*else if(wcsncmp(cmd, L"edit", 256) == 0){
     if(args.size() > 1){
       to_char(args.at(1), editor->filename, 256); // todo: implement setter
       editor->load();
@@ -99,7 +108,7 @@ void Shell::enter(){
     }
     rawInputs.clear();
     return;
-  }else if(wcsncmp(cmd, L"rm", 256) == 0){
+  }*/else if(wcsncmp(cmd, L"rm", 256) == 0){
     if(args.size() > 1){
       char filename[256];
       to_char(args.at(1), filename, 256);
@@ -122,9 +131,10 @@ void Shell::enter(){
   chrScreen->putChar(L'>', TFT_WHITE, TFT_BLACK);
   chrScreen->putChar(L' ', TFT_WHITE, TFT_BLACK);
 }
-void Shell::onChar(wchar_t c){
+bool Shell::onChar(wchar_t c){
   chrScreen->putChar(c, TFT_WHITE, TFT_BLACK);
   rawInputs.push_back(c);
+  return true;
 }
 void Shell::nextLine(){
   chrScreen->nextLine();

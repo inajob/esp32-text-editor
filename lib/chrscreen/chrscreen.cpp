@@ -1,5 +1,7 @@
 #include <chrscreen.h>
-#include <editor.h>
+
+// to use utf16CharToUtf8
+#include <fep.h>
 
 // w means the number of half characters
 void ChrScreen::init(int w, int h){
