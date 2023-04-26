@@ -12,23 +12,25 @@ using namespace std;
 
 #include <task.h>
 //#include <editor.h>
-#include <luashell.h>
 #include <chrscreen.h>
 #include <util.h>
+#include <luaexec.h>
 
-#ifndef SHELL_H
-#define SHELL_H
-class Shell: public Task{
+#ifndef LUA_SHELL_H
+#define LUA_SHELL_H
+
+class LuaShell: public Task{
   public:
   int x = 0;
   int y = 0;
+  lua_State* L;
   const int16_t TFT_WHITE = 0xffff;
   const int16_t TFT_BLACK = 0x0000;
 
+  LuaEngine lua;
   vector<wchar_t> rawInputs;
   vector<wchar_t> ::iterator rawInputsItr;
   //KanjiEditor* editor;
-  LuaShell* luaShell;
 
   virtual void init();
   virtual bool onkeydown(char key, char c, bool ctrl);
@@ -37,6 +39,8 @@ class Shell: public Task{
   virtual void left();
   virtual void up();
   virtual void down();
+  static int l_putString(lua_State* L);
+  static int l_exit(lua_State* L);
   virtual void enter();
   virtual bool onChar(wchar_t c);
   virtual void nextLine();

@@ -17,9 +17,11 @@
 #include <LovyanGFX.hpp>
 
 #include <shell.h>
+#include <luashell.h>
 //#include <editor.h>
 #include <fep.h>
 #include <chrscreen.h>
+
 
 LGFX lcd;
 const int fontSize = 1;
@@ -27,6 +29,7 @@ const int fontPointH = 12;
 const int fontPointW = 6;
 Task* app;
 //KanjiEditor editor;
+LuaShell luaShell;
 Shell shell;
 ChrScreen chrScreen;
 KanjiFep fep;
@@ -185,6 +188,10 @@ void setup()
   shell.setChrScreen(&chrScreen);
   shell.setFep(&fep);
   shell.init();
+
+  luaShell.setChrScreen(&chrScreen);
+  luaShell.setFep(&fep);
+  luaShell.init();
   //shell.editor = &editor;
 
   app = &shell;

@@ -97,6 +97,13 @@ void Shell::enter(){
     x = 0;
     y = 0;
     chrScreen->setCursor(0, 0);
+  }else if(wcsncmp(cmd, L"lua", 256) == 0){
+    setNextTask(luaShell);
+    for(int i = 0; i < chrScreen->getMaxLine(); i ++){
+      chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
+    }
+    rawInputs.clear();
+    return;
   }/*else if(wcsncmp(cmd, L"edit", 256) == 0){
     if(args.size() > 1){
       to_char(args.at(1), editor->filename, 256); // todo: implement setter
