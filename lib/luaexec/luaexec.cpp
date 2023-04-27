@@ -49,6 +49,10 @@ void LuaEngine::init(ChrScreen* cs){
   lua_setglobal(L, "putstring");
 
   lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_clearLine, 1);
+  lua_setglobal(L, "clearline");
+
+  lua_pushlightuserdata(L, this);
   lua_pushcclosure(L, l_setCursor, 1);
   lua_setglobal(L, "setcursor");
 
@@ -68,7 +72,9 @@ void LuaEngine::init(ChrScreen* cs){
   lua_pushcclosure(L, l_setColor, 1);
   lua_setglobal(L, "setcolor");
 
-
+  lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_debug, 1);
+  lua_setglobal(L, "debug");
 
   lua_pushlightuserdata(L, this);
   lua_pushcclosure(L, l_exit, 1);
@@ -157,6 +163,13 @@ int LuaEngine::l_putString(lua_State* L){
   self->chrScreen->putString(utf16, self->fgColor, self->bgColor);
   return 0;
 }
+int LuaEngine::l_clearLine(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const int row = lua_tointeger(L, 1);
+
+  self->chrScreen->clearLine(row, self->fgColor, self->bgColor);
+  return 0;
+}
 
 int LuaEngine::l_setCursor(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
@@ -211,6 +224,12 @@ int LuaEngine::l_setColor(lua_State* L){
 
   self->fgColor = rgb24to16(r, g, b);
   self->bgColor = rgb24to16(r2, g2, b2);
+  return 0;
+}
+int LuaEngine::l_debug(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const char* text = lua_tostring(L, 1);
+  Serial.println(text);
   return 0;
 }
 

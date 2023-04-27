@@ -38,11 +38,13 @@ class LuaEngine{
   void keydown(char key, char c, bool ctrl); // TODO
   void onChar(char* utf8char); // TODO
   static int l_putString(lua_State* L);
+  static int l_clearLine(lua_State* L);
   static int l_setCursor(lua_State* L);
   static int l_getMaxLine(lua_State* L);
   static int l_getCharWidth(lua_State* L);
   static int l_getScreenWidth(lua_State* L);
   static int l_setColor(lua_State* L);
+  static int l_debug(lua_State* L);
   static int l_exit(lua_State* L);
 };
 
