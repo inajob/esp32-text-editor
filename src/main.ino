@@ -80,12 +80,14 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
   app->onkeydown(key, c, ctrl);
 
   if(app->nextTask != NULL){
+    Serial.println("start nextTask");
     Task* p = app;
     app = app->nextTask;
     fep.setParentTask(app);
     p->nextTask = NULL;
   }
   if(app->isTerminate){ // TODO: shell is special app like `init`
+    Serial.println("terminated");
     app->isTerminate = false; // for next execute
     shell.init(); // clear terminal
     app = &shell;
@@ -187,7 +189,8 @@ void setup()
 
   shell.setChrScreen(&chrScreen);
   shell.setFep(&fep);
-  shell.init();
+  shell.luaShell = &luaShell;
+  //shell.init();
 
   luaShell.setChrScreen(&chrScreen);
   luaShell.setFep(&fep);

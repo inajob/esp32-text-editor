@@ -34,16 +34,7 @@ class LuaShell: public Task{
 
   virtual void init();
   virtual bool onkeydown(char key, char c, bool ctrl);
-  virtual void backSpace();
-  virtual void right();
-  virtual void left();
-  virtual void up();
-  virtual void down();
-  static int l_putString(lua_State* L);
-  static int l_exit(lua_State* L);
-  virtual void enter();
   virtual bool onChar(wchar_t c);
-  virtual void nextLine();
 };
 #endif
 

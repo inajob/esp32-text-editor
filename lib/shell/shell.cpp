@@ -103,6 +103,7 @@ void Shell::enter(){
       chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
     }
     rawInputs.clear();
+    luaShell->init();
     return;
   }/*else if(wcsncmp(cmd, L"edit", 256) == 0){
     if(args.size() > 1){
