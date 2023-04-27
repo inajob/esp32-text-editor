@@ -8,19 +8,25 @@ lastRow = getmaxline() - 3
 
 globalKey = 0
 globalCode = ""
+fontH = 12
+fontW = 6
 
 function draw()
   setcursor(0, 0)
-  -- TODO: redraw all lines
+  -- redraw all lines
   for i, line in pairs(lines) do
-    setcursor(0, i - 1)
-    clearline(i - 1)
+    setcursor(0, (i - 1)*fontH)
+    setcolor(0,0,0, 0,0,0);
+    fillrect(0, (i - 1)*fontH, 320, fontH)
+    setcolor(255,255,255, 0,0,0);
     putstring(line)
   end
 
   -- draw status line
-  setcursor(0, lastRow)
-  clearline(lastRow)
+  setcursor(0, (lastRow-1)*fontH)
+  putstring("heap: " .. getfreeheap())
+  -- draw status line
+  setcursor(0, (lastRow)*fontH)
   putstring("key: ")
   putstring(globalKey)
   putstring(",code of c: ")
@@ -31,7 +37,20 @@ function draw()
   end 
 
   -- draw cursor
-  setcursor(col - 1, row - 1)
+  count = 0
+  pos = 0
+  for p, c in utf8.codes(lines[row]) do
+    if count == col - 1 then
+      break
+    end
+    pos = pos + fontW
+    if c > 0x7F then
+      pos = pos + fontW
+    end
+    count = count + 1
+  end
+ 
+  setcursor(pos, (row - 1)*fontH)
   setcolor(0,0,0, 0,255,0);
   c = getCharAt(lines[row], col - 1)
   if c == "" then
@@ -58,7 +77,7 @@ function insertChar(s, c, i)
   count = 0
   hit = false
   for p, lc in utf8.codes(s) do
-    if count == i then
+    if count == i - 1 then
       newLine = newLine .. c
       hit = true
     end
@@ -92,6 +111,8 @@ function keydown(key, c, ctrl)
     table.insert(lines, row + 1, "")
     row = row + 1
     col = 1
+  elseif key == 41 then -- ESC
+    collectgarbage()
   elseif key == 82 then -- Up
     if row > 1 then
       row = row - 1

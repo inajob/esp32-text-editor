@@ -126,6 +126,14 @@ void ChrScreen::clearLine(int line, int16_t fg, int16_t bg){
     *itr2 = c;
   }
 }
+void ChrScreen::resetLine(int line){
+  Chr c = {0, 0, 0, false}; // not dirty!
+  vector<Chr>::iterator itr2;
+  for(itr2 = lines.at(line).begin(); itr2 != lines.at(line).end(); itr2++){
+    *itr2 = c;
+  }
+}
+
 wchar_t ChrScreen::getChar(int col, int line){
   return lines.at(line).at(col).w;
 }

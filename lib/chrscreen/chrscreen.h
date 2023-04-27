@@ -40,6 +40,7 @@ class ChrScreen {
   void back();
   void nextLine();
   void clearLine(int line, int16_t fg, int16_t bg);
+  void resetLine(int line);
   wchar_t getChar(int col, int line);
   int getCharSize(wchar_t w);
   int getMaxLine();

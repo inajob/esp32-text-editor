@@ -194,6 +194,7 @@ void setup()
 
   luaShell.setChrScreen(&chrScreen);
   luaShell.setFep(&fep);
+  luaShell.lua.lgfx = &lcd; // TODO: setter
   luaShell.init();
   //shell.editor = &editor;
 

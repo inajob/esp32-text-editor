@@ -1,4 +1,5 @@
 #include <chrscreen.h>
+#include <LovyanGFX.hpp>
 
 #ifndef LUA_EXEC_H
 #define LUA_EXEC_H
@@ -24,24 +25,26 @@ inline uint16_t rgb24to16(uint8_t r, uint8_t g, uint8_t b) {
 
 class LuaEngine{
   public:
+  ChrScreen *chrScreen;
   lua_State* L;
   const int16_t TFT_WHITE = 0xffff;
   const int16_t TFT_BLACK = 0x0000;
   const int16_t TFT_RED = 0xF800;
   int16_t fgColor = 0xffff;
   int16_t bgColor = 0x0000;
+  LGFX *lgfx;
 
-  ChrScreen* chrScreen;
   bool isTerminate;
   void init(ChrScreen* cs);
   void eval(char* utf8LuaString);
-  void keydown(char key, char c, bool ctrl); // TODO
-  void onChar(char* utf8char); // TODO
+  void keydown(char key, char c, bool ctrl);
+  void onChar(char* utf8char);
   static int l_putString(lua_State* L);
-  static int l_clearLine(lua_State* L);
+  static int l_clear(lua_State* L);
+  static int l_fillRect(lua_State* L);
   static int l_setCursor(lua_State* L);
+  static int l_getFreeHeap(lua_State* L);
   static int l_getMaxLine(lua_State* L);
-  static int l_getCharWidth(lua_State* L);
   static int l_getScreenWidth(lua_State* L);
   static int l_setColor(lua_State* L);
   static int l_debug(lua_State* L);

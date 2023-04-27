@@ -38,8 +38,8 @@ extern "C" {
 }
 
 void LuaEngine::init(ChrScreen* cs){
-  isTerminate = false;
   chrScreen = cs;
+  isTerminate = false;
 
   L = luaL_newstate();
   luaL_openlibs(L);
@@ -49,20 +49,24 @@ void LuaEngine::init(ChrScreen* cs){
   lua_setglobal(L, "putstring");
 
   lua_pushlightuserdata(L, this);
-  lua_pushcclosure(L, l_clearLine, 1);
-  lua_setglobal(L, "clearline");
+  lua_pushcclosure(L, l_clear, 1);
+  lua_setglobal(L, "clear");
+
+  lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_fillRect, 1);
+  lua_setglobal(L, "fillrect");
 
   lua_pushlightuserdata(L, this);
   lua_pushcclosure(L, l_setCursor, 1);
   lua_setglobal(L, "setcursor");
 
   lua_pushlightuserdata(L, this);
-  lua_pushcclosure(L, l_getMaxLine, 1);
-  lua_setglobal(L, "getmaxline");
+  lua_pushcclosure(L, l_getFreeHeap, 1);
+  lua_setglobal(L, "getfreeheap");
 
   lua_pushlightuserdata(L, this);
-  lua_pushcclosure(L, l_getCharWidth, 1);
-  lua_setglobal(L, "getcharwidth");
+  lua_pushcclosure(L, l_getMaxLine, 1);
+  lua_setglobal(L, "getmaxline");
 
   lua_pushlightuserdata(L, this);
   lua_pushcclosure(L, l_getScreenWidth, 1);
@@ -109,8 +113,9 @@ void LuaEngine::eval(char* utf8LuaString){
     Serial.println("lua error");
     Serial.printf("error? %s\n", lua_tostring(L, -1));
     char* err = (char*)lua_tostring(L, -1);
-    chrScreen->setCursor(0,0);
-    chrScreen->putString(err, TFT_WHITE, TFT_RED);
+    lgfx->setCursor(0,0);
+    lgfx->print((char*)lua_tostring(L, -1));
+
   }else{
     Serial.println("lua ok");
 
@@ -132,8 +137,9 @@ void LuaEngine::keydown(char key, char c, bool ctrl){
   lua_pushboolean(L, ctrl);
   if(lua_pcall(L, 3, 0, 0)){
      Serial.printf("run error? %s\n", lua_tostring(L, -1));
-     chrScreen->setCursor(0,0);
-     chrScreen->putString((char*)lua_tostring(L, -1), TFT_WHITE, TFT_RED);
+     lgfx->setTextColor(TFT_WHITE, TFT_RED);
+     lgfx->setCursor(0,0);
+     lgfx->print((char*)lua_tostring(L, -1));
    }
 }
 void LuaEngine::onChar(char* utf8char){
@@ -141,66 +147,56 @@ void LuaEngine::onChar(char* utf8char){
   lua_pushstring(L, utf8char);
   if(lua_pcall(L, 1, 0, 0)){
      Serial.printf("run error? %s\n", lua_tostring(L, -1));
-     chrScreen->setCursor(0,0);
-     chrScreen->putString((char*)lua_tostring(L, -1), TFT_WHITE, TFT_RED);
+     lgfx->setTextColor(TFT_WHITE, TFT_RED);
+     lgfx->setCursor(0,0);
+     lgfx->print((char*)lua_tostring(L, -1));
   }
 }
 
 int LuaEngine::l_putString(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
   const char* text = lua_tostring(L, 1);
-  wchar_t utf16[1024];
-  wchar_t* p = utf16;
-  char* o = (char*)text;
-  while(*o != 0){
-    size_t n = utf8CharToUtf16(o, p);
-    o += n;
-    p ++;
-  }
-  *(p++) = 0; // null terminate
-
-  // text is UTF8
-  self->chrScreen->putString(utf16, self->fgColor, self->bgColor);
+  self->lgfx->print(text);
   return 0;
 }
-int LuaEngine::l_clearLine(lua_State* L){
+
+int LuaEngine::l_clear(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
-  const int row = lua_tointeger(L, 1);
 
-  self->chrScreen->clearLine(row, self->fgColor, self->bgColor);
+  self->lgfx->fillScreen(self->bgColor);
   return 0;
 }
+int LuaEngine::l_fillRect(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const int x = lua_tointeger(L, 1);
+  const int y = lua_tointeger(L, 2);
+  const int w = lua_tointeger(L, 3);
+  const int h = lua_tointeger(L, 4);
 
+  self->lgfx->fillRect(x, y, w, h, self->fgColor);
+  return 0;
+}
 int LuaEngine::l_setCursor(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
   const int col = lua_tointeger(L, 1);
   const int line = lua_tointeger(L, 2);
 
-  self->chrScreen->setCursor(col, line);
+  self->lgfx->setCursor(col, line);
+  self->chrScreen->resetLine(line/12); // TODO: ad-hoc
+  self->chrScreen->setCursor(col/6, line/12); // TODO: magic number
   return 0;
+}
+int LuaEngine::l_getFreeHeap(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+
+  lua_pushinteger(L, (lua_Integer)ESP.getFreeHeap());
+  return 1;
 }
 int LuaEngine::l_getMaxLine(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
 
-  int line = self->chrScreen->getMaxLine();
+  int line = 20; // TODO: implement
   lua_pushinteger(L, (lua_Integer)line);
-  return 1;
-}
-int LuaEngine::l_getCharWidth(lua_State* L){
-  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
-  const char* text = lua_tostring(L, 1);
-  wchar_t utf16[1024];
-  wchar_t* p = utf16;
-  char* o = (char*)text;
-  while(*o != 0){
-    size_t n = utf8CharToUtf16(o, p);
-    o += n;
-    p ++;
-  }
-  *(p++) = 0; // null terminate
-
-  int width = self->chrScreen->getCharSize(utf16[0]);
-  lua_pushinteger(L, (lua_Integer)width);
   return 1;
 }
 int LuaEngine::l_getScreenWidth(lua_State* L){
@@ -224,6 +220,7 @@ int LuaEngine::l_setColor(lua_State* L){
 
   self->fgColor = rgb24to16(r, g, b);
   self->bgColor = rgb24to16(r2, g2, b2);
+  self->lgfx->setTextColor(self->fgColor, self->bgColor);
   return 0;
 }
 int LuaEngine::l_debug(lua_State* L){
