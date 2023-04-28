@@ -69,6 +69,9 @@ function draw()
     posX = 0;
     ::continue::
   end
+  setcolor(0,0,0, 0,0,0);
+  fillrect(0, posY, 320, fontH)
+  setcolor(255,255,255, 0,0,0);
 
   -- draw status line for heap
   setcolor(0,0,255, 0,0,0);
@@ -140,8 +143,21 @@ function keydown(key, c, ctrl)
   globalKey = key
   globalCode = code
   if code == 13 then
+    newLine = ""
+    newLineNext = ""
+    count = 1
+    for p, lc in utf8.codes(lines[row]) do
+      if count < col then
+        newLine = newLine .. utf8.char(lc)
+      else
+        newLineNext = newLineNext .. utf8.char(lc)
+      end
+      count = count + 1
+    end
+    lines[row] = newLine
     table.insert(lines, row + 1, "")
     row = row + 1
+    lines[row] = newLineNext
     if row - topRow > lastRow - 2 then
       topRow = topRow + 1
     end
@@ -171,15 +187,32 @@ function keydown(key, c, ctrl)
     end
 
   elseif key == 80 then -- Left
-    if col > 1 then
+    if col == 1 then
+      if row > 1 then
+        row = row - 1
+        col = utf8.len(lines[row]) + 1
+      end
+    else
       col = col - 1
     end
   elseif key == 79 then -- Right
-    if col <= utf8.len(lines[row]) then
+    if col == utf8.len(lines[row]) + 1 and row < #lines then
+      col = 1
+      row = row + 1
+    else
       col = col + 1
     end
   elseif key == 42 then -- BS
-    if col > 1 then
+    if col == 1 then
+      if row > 1 then
+        -- merge line
+        nowLine = lines[row]
+        table.remove(lines, row)
+        row = row - 1
+        col = utf8.len(lines[row]) + 1
+        lines[row] = lines[row] .. nowLine
+      end
+    else
       col = col - 1
       lines[row] = removeChar(lines[row], col)
     end
