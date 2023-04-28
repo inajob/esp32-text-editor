@@ -65,6 +65,10 @@ void LuaEngine::init(ChrScreen* cs){
   lua_setglobal(L, "getfreeheap");
 
   lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_getTextWidth, 1);
+  lua_setglobal(L, "gettextwidth");
+
+  lua_pushlightuserdata(L, this);
   lua_pushcclosure(L, l_getMaxLine, 1);
   lua_setglobal(L, "getmaxline");
 
@@ -190,6 +194,14 @@ int LuaEngine::l_getFreeHeap(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
 
   lua_pushinteger(L, (lua_Integer)ESP.getFreeHeap());
+  return 1;
+}
+int LuaEngine::l_getTextWidth(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const char* text = lua_tostring(L, 1);
+
+  int width = self->lgfx->textWidth(text); // TODO: implement
+  lua_pushinteger(L, (lua_Integer)width);
   return 1;
 }
 int LuaEngine::l_getMaxLine(lua_State* L){

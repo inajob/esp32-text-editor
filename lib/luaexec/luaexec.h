@@ -44,6 +44,7 @@ class LuaEngine{
   static int l_fillRect(lua_State* L);
   static int l_setCursor(lua_State* L);
   static int l_getFreeHeap(lua_State* L);
+  static int l_getTextWidth(lua_State* L);
   static int l_getMaxLine(lua_State* L);
   static int l_getScreenWidth(lua_State* L);
   static int l_setColor(lua_State* L);

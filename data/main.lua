@@ -2,8 +2,12 @@ putstring("hello from lua!")
 putstring("hello from lua!")
 
 lines = {""}
+topRow = 1;
 row = 1
 col = 1
+
+-- below line is `mode`
+-- below line 2 is `henkan`
 lastRow = getmaxline() - 3
 
 globalKey = 0
@@ -14,18 +18,65 @@ fontW = 6
 function draw()
   setcursor(0, 0)
   -- redraw all lines
+  cursorY = 0
+  cursorX = 0
+  posY = 0
+  posX = 0
   for i, line in pairs(lines) do
-    setcursor(0, (i - 1)*fontH)
+    if i < topRow then
+      goto continue
+    end
+    setcursor(posX, posY)
+    -- clear line
     setcolor(0,0,0, 0,0,0);
-    fillrect(0, (i - 1)*fontH, 320, fontH)
+    fillrect(0, posY, 320, fontH)
     setcolor(255,255,255, 0,0,0);
-    putstring(line)
+    -- draw string
+    count = 0;
+    hit = false
+    for p, cc in utf8.codes(line) do
+      c = utf8.char(cc)
+      if i == row and count +1 == col then
+        setcolor(0,0,0, 0,255,0);
+        hit = true
+        putstring(c)
+        setcolor(255,255,255, 0,0,0);
+        cursorX = posX
+        cursorY = posY
+      else
+        putstring(c)
+      end
+      posX = posX + gettextwidth(c)
+      if posX > 320 - fontW*2 then -- fold
+        posX = 0
+        posY = posY + fontH
+        setcursor(posX, posY)
+        -- clear line
+        setcolor(0,0,0, 0,0,0);
+        fillrect(0, posY, 320, fontH)
+        setcolor(255,255,255, 0,0,0);
+      end
+      count = count + 1
+    end
+    if i == row and not(hit) then
+      setcolor(0,0,0, 0,255,0);
+      putstring("*")
+      setcolor(255,255,255, 0,0,0);
+      cursorX = posX
+      cursorY = posY
+    end
+    posY = posY + fontH
+    posX = 0;
+    ::continue::
   end
 
-  -- draw status line
+  -- draw status line for heap
+  setcolor(0,0,255, 0,0,0);
   setcursor(0, (lastRow-1)*fontH)
   putstring("heap: " .. getfreeheap())
-  -- draw status line
+  -- draw status line for char
+  fillrect(0, (lastRow)*fontH, 320, fontH)
+  setcolor(0,0,0, 0,0,255);
   setcursor(0, (lastRow)*fontH)
   putstring("key: ")
   putstring(globalKey)
@@ -35,30 +86,12 @@ function draw()
   else 
     putstring("nil")
   end 
+  putstring(",row " .. row)
+  putstring(",cow " .. col)
+  putstring(",topRow " .. topRow)
 
-  -- draw cursor
-  count = 0
-  pos = 0
-  for p, c in utf8.codes(lines[row]) do
-    if count == col - 1 then
-      break
-    end
-    pos = pos + fontW
-    if c > 0x7F then
-      pos = pos + fontW
-    end
-    count = count + 1
-  end
- 
-  setcursor(pos, (row - 1)*fontH)
-  setcolor(0,0,0, 0,255,0);
-  c = getCharAt(lines[row], col - 1)
-  if c == "" then
-    c = "*"
-  end
-  putstring(c)
-  setcolor(255,255,255, 0,0,0);
-
+  -- setcursor for fep
+  setcursor(cursorX, cursorY)
 end
 
 function getCharAt(s, i)
@@ -102,7 +135,6 @@ function removeChar(s, i)
   return newLine
 end
 
-
 function keydown(key, c, ctrl)
   code = string.byte(c)
   globalKey = key
@@ -110,6 +142,10 @@ function keydown(key, c, ctrl)
   if code == 13 then
     table.insert(lines, row + 1, "")
     row = row + 1
+    if row - topRow > lastRow - 2 then
+      topRow = topRow + 1
+    end
+
     col = 1
   elseif key == 41 then -- ESC
     collectgarbage()
@@ -120,6 +156,9 @@ function keydown(key, c, ctrl)
         col = utf8.len(lines[row]) + 1
       end
     end
+    if row < topRow then
+      topRow = topRow - 1
+    end
   elseif key == 81 then -- Down
     if row < #lines then
       row = row + 1
@@ -127,6 +166,10 @@ function keydown(key, c, ctrl)
         col = utf8.len(lines[row]) + 1
       end
     end
+    if row - topRow > lastRow - 2 then
+      topRow = topRow + 1
+    end
+
   elseif key == 80 then -- Left
     if col > 1 then
       col = col - 1
@@ -148,6 +191,7 @@ function keydown(key, c, ctrl)
   end
   draw()
 end
+
 function onChar(c)
   lines[row] = insertChar(lines[row], c, col)
   col = col + 1
