@@ -19,6 +19,7 @@ bool LuaShell::onkeydown(char key, char c, bool ctrl){
     }
   }
   lua.keydown(key, c, ctrl);
+  isTerminate = lua.isTerminate;
 }
 bool LuaShell::onChar(wchar_t c){
   char utf8char[4];

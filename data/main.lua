@@ -1,10 +1,13 @@
 putstring("hello from lua!")
 putstring("hello from lua!")
 
+fileName = "/test.txt"
+history = {}
 lines = {""}
 topRow = 1;
 row = 1
 col = 1
+statusLine = ""
 
 -- below line is `mode`
 -- below line 2 is `henkan`
@@ -75,8 +78,10 @@ function draw()
 
   -- draw status line for heap
   setcolor(0,0,255, 0,0,0);
+  fillrect(0, (lastRow - 1)*fontH, 320, fontH)
   setcursor(0, (lastRow-1)*fontH)
   putstring("heap: " .. getfreeheap())
+  putstring("status: " .. statusLine)
   -- draw status line for char
   fillrect(0, (lastRow)*fontH, 320, fontH)
   setcolor(0,0,0, 0,0,255);
@@ -92,6 +97,7 @@ function draw()
   putstring(",row " .. row)
   putstring(",cow " .. col)
   putstring(",topRow " .. topRow)
+  putstring(",fileName " .. fileName)
 
   -- setcursor for fep
   setcursor(cursorX, cursorY)
@@ -138,10 +144,103 @@ function removeChar(s, i)
   return newLine
 end
 
+function saveFile(fn)
+  savefile(fn, table.concat(lines, "\n"))
+end
+function loadFile(fn)
+  if exists(fn) then
+    body = readfile(fn)
+    lines = {}
+    line = ""
+    for p, lc in utf8.codes(body) do
+      c = utf8.char(lc)
+      if c == "\n" then
+        lines[#lines + 1] = line
+        line = ""
+        goto continue
+      end
+      line = line .. c
+      ::continue::
+    end
+    lines[#lines + 1] = line
+    statusLine = "load " .. fileName
+  else
+    lines = {""}
+    col = 1
+    row = 1
+    statusLine = "new " .. fileName
+  end
+  col = 1
+  row = 1
+  setcolor(0,0,0, 0,0,0)
+  fillrect(0, 0, 320, 240)
+
+end
+
 function keydown(key, c, ctrl)
   code = string.byte(c)
   globalKey = key
   globalCode = code
+  if ctrl then
+    if c == "s" then
+      saveFile(fileName)
+      statusLine = "saved " .. fileName
+    elseif c == "c" then
+      statusLine = "check" .. exists(fileName)
+    elseif c == "x" then
+      exit()
+      statusLine = "exit"
+    elseif c == "l" then
+      loadFile(fileName)
+    elseif c == "g" then
+      -- seek wiki name
+      nextFile = ""
+      hit = false
+      found = false
+      count = 0
+      for p, cc in utf8.codes(lines[row]) do
+        c = utf8.char(cc)
+        if hit then
+          if count == col then
+            found = true
+          end
+          if c == "[" then
+            found = false
+            break
+          elseif c == "]" then
+            hit = false
+            if found then
+              break
+            else
+              nextFile = ""
+            end
+          else
+            nextFile = nextFile .. c
+          end
+        else
+          if c == "[" then
+            hit = true
+          end
+        end
+        count = count + 1
+      end
+      if found then
+        statusLine = "next file is: " .. nextFile
+        debug("next file is: " .. nextFile)
+        table.insert(history, fileName)
+        fileName = "/" .. nextFile .. ".txt"
+        loadFile(fileName)
+      end
+    elseif c == "b" then
+      if #history > 0 then
+        fileName = history[#history]
+        table.remove(history)
+        loadFile(fileName)
+      end
+    end
+    draw()
+    return
+  end
   if code == 13 then
     newLine = ""
     newLineNext = ""
@@ -161,7 +260,6 @@ function keydown(key, c, ctrl)
     if row - topRow > lastRow - 2 then
       topRow = topRow + 1
     end
-
     col = 1
   elseif key == 41 then -- ESC
     collectgarbage()
@@ -230,3 +328,5 @@ function onChar(c)
   col = col + 1
   draw()
 end
+
+draw()

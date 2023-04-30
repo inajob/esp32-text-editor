@@ -39,6 +39,10 @@ class LuaEngine{
   void eval(char* utf8LuaString);
   void keydown(char key, char c, bool ctrl);
   void onChar(char* utf8char);
+  static int l_getFiles(lua_State* L);
+  static int l_exists(lua_State* L);
+  static int l_saveFile(lua_State* L);
+  static int l_readFile(lua_State* L);
   static int l_putString(lua_State* L);
   static int l_clear(lua_State* L);
   static int l_fillRect(lua_State* L);

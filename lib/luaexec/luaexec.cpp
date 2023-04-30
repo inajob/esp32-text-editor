@@ -45,6 +45,22 @@ void LuaEngine::init(ChrScreen* cs){
   luaL_openlibs(L);
 
   lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_getFiles, 1);
+  lua_setglobal(L, "getfiles");
+
+  lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_exists, 1);
+  lua_setglobal(L, "exists");
+
+  lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_saveFile, 1);
+  lua_setglobal(L, "savefile");
+
+  lua_pushlightuserdata(L, this);
+  lua_pushcclosure(L, l_readFile, 1);
+  lua_setglobal(L, "readfile");
+
+  lua_pushlightuserdata(L, this);
   lua_pushcclosure(L, l_putString, 1);
   lua_setglobal(L, "putstring");
 
@@ -155,6 +171,65 @@ void LuaEngine::onChar(char* utf8char){
      lgfx->setCursor(0,0);
      lgfx->print((char*)lua_tostring(L, -1));
   }
+}
+
+int LuaEngine::l_getFiles(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const char* path = lua_tostring(L, 1);
+
+  lua_newtable(L);
+  int i = 1;
+  File dir = SPIFFS.open(path);
+  File f = dir.openNextFile();
+  while(f){
+    lua_pushnumber(L, i);
+    lua_pushstring(L, (char*)f.name());
+    lua_settable(L, -3);
+    f = dir.openNextFile();
+    i ++;
+  }
+  return 1;
+}
+
+int LuaEngine::l_exists(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const char* fileName = lua_tostring(L, 1);
+
+  bool exists = SPIFFS.exists(fileName);
+  lua_pushboolean(L, exists);
+
+  return 1;
+}
+
+int LuaEngine::l_saveFile(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const char* fileName = lua_tostring(L, 1);
+  const char* body = lua_tostring(L, 2);
+
+  File fp = SPIFFS.open(fileName, FILE_WRITE);
+  fp.print(body);
+  fp.close();
+
+  return 0;
+}
+
+int LuaEngine::l_readFile(lua_State* L){
+  LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
+  const char* fileName = lua_tostring(L, 1);
+  char buf[1024];
+
+  File fp = SPIFFS.open(fileName, FILE_READ);
+  lua_pushstring(L, "");
+  while(fp.available()){
+    int c = fp.read((uint8_t*)buf, 1024);
+    buf[c] = 0; // null terminate
+    lua_pushstring(L, buf);
+    lua_concat(L, 2);
+    Serial.println(buf);
+  }
+  fp.close();
+
+  return 1;
 }
 
 int LuaEngine::l_putString(lua_State* L){

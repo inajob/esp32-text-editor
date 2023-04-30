@@ -190,7 +190,7 @@ void setup()
   shell.setChrScreen(&chrScreen);
   shell.setFep(&fep);
   shell.luaShell = &luaShell;
-  //shell.init();
+  shell.init();
 
   luaShell.setChrScreen(&chrScreen);
   luaShell.setFep(&fep);
