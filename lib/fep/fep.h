@@ -39,6 +39,7 @@ class KanjiFep: public Task{
   KanjiMode kanjiMode = KanjiMode::ROME;
   uint8_t shiin1 = 0;
   uint8_t shiin2 = 0;
+  bool isBackspace = false;
   const int16_t TFT_WHITE = 0xffff;
   const int16_t TFT_BLACK = 0x0000;
 

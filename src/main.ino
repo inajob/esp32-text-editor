@@ -187,16 +187,16 @@ void setup()
   //editor.setFep(&fep);
   //editor.init();
 
-  shell.setChrScreen(&chrScreen);
-  shell.setFep(&fep);
-  shell.luaShell = &luaShell;
-  shell.init();
-
   luaShell.setChrScreen(&chrScreen);
   luaShell.setFep(&fep);
   luaShell.lua.lgfx = &lcd; // TODO: setter
   luaShell.init();
   //shell.editor = &editor;
+
+  shell.setChrScreen(&chrScreen);
+  shell.setFep(&fep);
+  shell.luaShell = &luaShell;
+  shell.init();
 
   app = &shell;
   fep.setParentTask(app);

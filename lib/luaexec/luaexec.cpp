@@ -195,7 +195,7 @@ int LuaEngine::l_exists(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
   const char* fileName = lua_tostring(L, 1);
 
-  bool exists = SPIFFS.exists(fileName);
+  bool exists = SD.exists(fileName);
   lua_pushboolean(L, exists);
 
   return 1;
@@ -206,7 +206,7 @@ int LuaEngine::l_saveFile(lua_State* L){
   const char* fileName = lua_tostring(L, 1);
   const char* body = lua_tostring(L, 2);
 
-  File fp = SPIFFS.open(fileName, FILE_WRITE);
+  File fp = SD.open(fileName, FILE_WRITE);
   fp.print(body);
   fp.close();
 
@@ -218,10 +218,14 @@ int LuaEngine::l_readFile(lua_State* L){
   const char* fileName = lua_tostring(L, 1);
   char buf[1024];
 
-  File fp = SPIFFS.open(fileName, FILE_READ);
+  File fp = SD.open(fileName, FILE_READ);
   lua_pushstring(L, "");
   while(fp.available()){
-    int c = fp.read((uint8_t*)buf, 1024);
+    int c = fp.readBytes((char*)buf, 1024);
+    Serial.println(c);
+    if(c == 0){
+      break;
+    }
     buf[c] = 0; // null terminate
     lua_pushstring(L, buf);
     lua_concat(L, 2);

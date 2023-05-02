@@ -2,6 +2,14 @@
 
 // to use utf16CharToUtf8
 #include <fep.h>
+#include <SD.h>
+
+// Define CS pin for the SD card module
+#define SD_MISO     19
+#define SD_MOSI     23
+#define SD_SCLK     18
+#define SD_CS       4
+SPIClass sdSPI(VSPI);
 
 void LuaShell::init(){
   rawInputsItr = rawInputs.begin();
@@ -9,6 +17,10 @@ void LuaShell::init(){
     chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
   }
   lua.init(chrScreen);
+  sdSPI.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
+  if(!SD.begin(SD_CS, sdSPI)){
+    Serial.println("SD init failed");
+  }
   isTerminate = false;
 }
 bool LuaShell::onkeydown(char key, char c, bool ctrl){

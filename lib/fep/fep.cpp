@@ -178,7 +178,8 @@ bool KanjiFep::backSpace(){
       // cancel KANJI MODE
       kanjiMode = KanjiMode::ROME;
     }
-    return true;
+    isBackspace = true;
+    return false;
   }
   // unreach here?
   return true;
@@ -473,6 +474,10 @@ void KanjiFep::draw(){
       chrScreen->putChar((wchar_t)shiin2, TFT_BLACK, TFT_WHITE);
       x ++;
     }
+  }
+  if(isBackspace){ // remove backspaced char
+    chrScreen->putChar(L'　', TFT_BLACK, TFT_WHITE);
+    isBackspace = false;
   }
 
   // mode line

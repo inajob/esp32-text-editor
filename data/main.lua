@@ -79,9 +79,10 @@ function draw()
   -- draw status line for heap
   setcolor(0,0,255, 0,0,0);
   fillrect(0, (lastRow - 1)*fontH, 320, fontH)
+  setcolor(255,255,255, 0,0,255);
   setcursor(0, (lastRow-1)*fontH)
   putstring("heap: " .. getfreeheap())
-  putstring("status: " .. statusLine)
+  putstring(" " .. statusLine)
   -- draw status line for char
   fillrect(0, (lastRow)*fontH, 320, fontH)
   setcolor(0,0,0, 0,0,255);
