@@ -104,9 +104,12 @@ void LuaEngine::init(ChrScreen* cs){
   lua_pushcclosure(L, l_exit, 1);
   lua_setglobal(L, "exit");
 
-  // TODO: load main.lua
-  String fileName = "/main.lua";
-  File fp = SPIFFS.open(fileName, FILE_READ);
+  File fp;
+  if(isSD){
+    fp = SD.open(fileName, FILE_READ);
+  }else{
+    fp = SPIFFS.open(fileName, FILE_READ);
+  }
   struct LoadF lf;
   lf.f = fp;
   char cFileName[32];

@@ -82,7 +82,7 @@ void Shell::enter(){
 
   if(wcsncmp(cmd, L"ls", 256) == 0){
 #ifdef ESP32
-    File root = SPIFFS.open("/");
+    File root = SD.open("/");
     File f = root.openNextFile();
     while(f){
       chrScreen->putString((char*)f.name(), TFT_WHITE, TFT_BLACK);
@@ -98,6 +98,14 @@ void Shell::enter(){
     y = 0;
     chrScreen->setCursor(0, 0);
   }else if(wcsncmp(cmd, L"lua", 256) == 0){
+    if(args.size() > 1){
+      char filename[256];
+      to_char(args.at(1), filename, 256);
+
+      luaShell->lua.isSD = true;
+      luaShell->lua.fileName = filename;
+    }
+
     setNextTask(luaShell);
     for(int i = 0; i < chrScreen->getMaxLine(); i ++){
       chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
@@ -121,7 +129,7 @@ void Shell::enter(){
       char filename[256];
       to_char(args.at(1), filename, 256);
 #ifdef ESP32
-      SPIFFS.remove(filename);
+      SD.remove(filename);
 #endif
       sprintf(debug, "%s removed", filename);
       chrScreen->putString(debug, TFT_WHITE, TFT_BLACK);

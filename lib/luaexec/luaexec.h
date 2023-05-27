@@ -33,6 +33,8 @@ class LuaEngine{
   int16_t fgColor = 0xffff;
   int16_t bgColor = 0x0000;
   LGFX *lgfx;
+  bool isSD = false;
+  String fileName = "/main.lua";
 
   bool isTerminate;
   void init(ChrScreen* cs);
