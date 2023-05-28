@@ -320,6 +320,15 @@ bool KanjiFep::onCharRoma(uint8_t c, bool ctrl){
               }
               return false;
               break;
+    case '-':
+      return onChar(L'ー');
+      break;
+    case '.':
+      return onChar(L'。');
+      break;
+    case ',':
+      return onChar(L'、');
+      break;
     case 'l':
       kanjiMode = KanjiMode::DIRECT;
       return false;
