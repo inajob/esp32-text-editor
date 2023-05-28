@@ -8,6 +8,7 @@ topRow = 1;
 row = 1
 col = 1
 statusLine = ""
+yank = ""
 
 -- below line is `mode`
 -- below line 2 is `henkan`
@@ -27,6 +28,9 @@ function draw()
   posX = 0
   for i, line in pairs(lines) do
     if i < topRow then
+      goto continue
+    end
+    if i - topRow > lastRow then
       goto continue
     end
     setcursor(posX, posY)
@@ -171,6 +175,7 @@ function loadFile(fn)
     row = 1
     statusLine = "new " .. fileName
   end
+  topRow = 1
   col = 1
   row = 1
   setcolor(0,0,0, 0,0,0)
@@ -193,6 +198,11 @@ function keydown(key, c, ctrl)
       statusLine = "exit"
     elseif c == "l" then
       loadFile(fileName)
+    elseif c == "k" then
+      yank = lines[row]
+      table.remove(lines, row)
+    elseif c == "u" then
+      table.insert(lines, row, yank)
     elseif c == "g" then
       -- seek wiki name
       nextFile = ""
@@ -281,7 +291,7 @@ function keydown(key, c, ctrl)
         col = utf8.len(lines[row]) + 1
       end
     end
-    if row - topRow > lastRow - 2 then
+    if row - topRow > lastRow - 4 then
       topRow = topRow + 1
     end
 
