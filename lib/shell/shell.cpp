@@ -104,6 +104,9 @@ void Shell::enter(){
 
       luaShell->lua.isSD = true;
       luaShell->lua.fileName = filename;
+    }else{
+      luaShell->lua.isSD = false;
+      luaShell->lua.fileName = "/main.lua";
     }
 
     setNextTask(luaShell);

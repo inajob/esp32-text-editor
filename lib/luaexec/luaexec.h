@@ -35,12 +35,15 @@ class LuaEngine{
   LGFX *lgfx;
   bool isSD = false;
   String fileName = "/main.lua";
+  String errorString;
+  bool runError;
 
-  bool isTerminate;
+  bool isTerminate = false;
   void init(ChrScreen* cs);
   void eval(char* utf8LuaString);
   void keydown(char key, char c, bool ctrl);
   void onChar(char* utf8char);
+  void exit();
   static int l_getFiles(lua_State* L);
   static int l_exists(lua_State* L);
   static int l_saveFile(lua_State* L);

@@ -89,7 +89,7 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
   if(app->isTerminate){ // TODO: shell is special app like `init`
     Serial.println("terminated");
     app->isTerminate = false; // for next execute
-    shell.init(); // clear terminal
+    //shell.init(); // clear terminal
     app = &shell;
     fep.setParentTask(app);
   }
@@ -190,7 +190,7 @@ void setup()
   luaShell.setChrScreen(&chrScreen);
   luaShell.setFep(&fep);
   luaShell.lua.lgfx = &lcd; // TODO: setter
-  luaShell.init();
+  //luaShell.init();
   //shell.editor = &editor;
 
   shell.setChrScreen(&chrScreen);

@@ -16,12 +16,12 @@ void LuaShell::init(){
   for(int i = 0; i < chrScreen->getMaxLine(); i ++){
     chrScreen->clearLine(i, TFT_WHITE, TFT_BLACK);
   }
+  isTerminate = false;
   lua.init(chrScreen);
   sdSPI.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
   if(!SD.begin(SD_CS, sdSPI)){
     Serial.println("SD init failed");
   }
-  isTerminate = false;
 }
 bool LuaShell::onkeydown(char key, char c, bool ctrl){
   if(fep){
@@ -30,8 +30,14 @@ bool LuaShell::onkeydown(char key, char c, bool ctrl){
       return false;
     }
   }
+
   lua.keydown(key, c, ctrl);
+
   isTerminate = lua.isTerminate;
+  if(isTerminate == 1){
+    lua.exit();
+  }
+  return true;
 }
 bool LuaShell::onChar(wchar_t c){
   char utf8char[4];
@@ -39,5 +45,9 @@ bool LuaShell::onChar(wchar_t c){
   uint8_t len = utf16CharToUtf8(c, utf8char);
 
   lua.onChar(utf8char);
+  isTerminate = lua.isTerminate;
+  if(isTerminate){
+    lua.exit();
+  }
   return true;
 }

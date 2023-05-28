@@ -30,9 +30,9 @@ extern "C" {
     ret[len + 1] = 0;
 
     *size = len + 1;
-    Serial.print("");
-    Serial.println(ret);
-    Serial.println(*size);
+    //Serial.print("");
+    //Serial.println(ret);
+    //Serial.println(*size);
     return ret;
   }
 }
@@ -118,7 +118,9 @@ void LuaEngine::init(ChrScreen* cs){
   if(lua_load(L, getF, &lf, cFileName, NULL)){
     Serial.printf("error? %s\n", lua_tostring(L, -1));
     runError = true;
-    //errorString = lua_tostring(L, -1);
+    errorString = lua_tostring(L, -1);
+    isTerminate = true;
+    return;
   }
   fp.close();
 
@@ -126,7 +128,9 @@ void LuaEngine::init(ChrScreen* cs){
     if(lua_pcall(L, 0, 0,0)){
       Serial.printf("init error? %s\n", lua_tostring(L, -1));
       runError = true;
-      //errorString = lua_tostring(L, -1);
+      errorString = lua_tostring(L, -1);
+      isTerminate = true;
+      return;
     }
   }
 }
@@ -163,6 +167,10 @@ void LuaEngine::keydown(char key, char c, bool ctrl){
      lgfx->setTextColor(TFT_WHITE, TFT_RED);
      lgfx->setCursor(0,0);
      lgfx->print((char*)lua_tostring(L, -1));
+     runError = true;
+     errorString = lua_tostring(L, -1);
+     isTerminate = true;
+     return;
    }
 }
 void LuaEngine::onChar(char* utf8char){
@@ -173,6 +181,10 @@ void LuaEngine::onChar(char* utf8char){
      lgfx->setTextColor(TFT_WHITE, TFT_RED);
      lgfx->setCursor(0,0);
      lgfx->print((char*)lua_tostring(L, -1));
+     runError = true;
+     errorString = lua_tostring(L, -1);
+     isTerminate = true;
+     return;
   }
 }
 
@@ -328,6 +340,12 @@ int LuaEngine::l_exit(lua_State* L){
   LuaEngine* self = (LuaEngine*)lua_touserdata(L, lua_upvalueindex(1));
   self->isTerminate = true;
   return 0;
+}
+void LuaEngine::exit(){
+  Serial.println("CALL close!");
+  Serial.println(runError);
+  Serial.println(errorString);
+  lua_close(L);
 }
 
 
