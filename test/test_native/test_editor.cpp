@@ -153,18 +153,18 @@ void test_fep_rome_conversion(void){
 
 void test_dicttool_search(){
   vector<string> results;
-  search("わるs", &results,"data/SKK-JISYO.S.txt");
+  search((char*)"わるs", &results,(char*)"data/SKK-JISYO.S.txt");
   //printf("result: %s", results);
   TEST_ASSERT_EQUAL_STRING_MESSAGE("悪", results.at(0).c_str(), "check result");
 
   results.clear();
-  search("れき", &results,"data/SKK-JISYO.S.txt");
+  search((char*)"れき", &results,(char*)"data/SKK-JISYO.S.txt");
   //printf("result: %x\n", results.at(0).c_str()[0]);
   TEST_ASSERT_EQUAL_STRING_MESSAGE("歴", results.at(0).c_str(), "check result2");
   TEST_ASSERT_EQUAL_STRING_MESSAGE("暦", results.at(1).c_str(), "check result2-2");
 
   results.clear();
-  search("わん", &results,"data/SKK-JISYO.S.txt");
+  search((char*)"わん", &results,(char*)"data/SKK-JISYO.S.txt");
   //printf("result: %s", results);
   TEST_ASSERT_EQUAL_STRING_MESSAGE("腕", results.at(0).c_str(), "check result3");
   TEST_ASSERT_EQUAL_STRING_MESSAGE("碗", results.at(1).c_str(), "check result3-2");

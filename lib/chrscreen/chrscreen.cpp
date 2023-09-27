@@ -92,7 +92,7 @@ void ChrScreen::putString(char* cp, int16_t fg, int16_t bg){
 }
 
 void ChrScreen::putChar(wchar_t w, int16_t fg, int16_t bg){
-  Chr c = {w, fg, bg, true};
+  Chr c = {w, (uint16_t)fg, (uint16_t)bg, true};
   //if(cursorColPos + getCharSize(w) > screenWidth){ // folding
   //  cursorColPos = 0;
   //  cursorCol = 0;
@@ -120,7 +120,7 @@ void ChrScreen::nextLine(){
   }
 }
 void ChrScreen::clearLine(int line, int16_t fg, int16_t bg){
-  Chr c = {0, fg, bg, true};
+  Chr c = {0, (uint16_t)fg, (uint16_t)bg, true};
   vector<Chr>::iterator itr2;
   for(itr2 = lines.at(line).begin(); itr2 != lines.at(line).end(); itr2++){
     *itr2 = c;

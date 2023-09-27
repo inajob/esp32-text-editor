@@ -98,6 +98,7 @@ void Shell::enter(){
     y = 0;
     chrScreen->setCursor(0, 0);
   }else if(wcsncmp(cmd, L"lua", 256) == 0){
+#ifdef ESP32
     if(args.size() > 1){
       char filename[256];
       to_char(args.at(1), filename, 256);
@@ -116,6 +117,7 @@ void Shell::enter(){
     rawInputs.clear();
     luaShell->init();
     return;
+#endif
   }/*else if(wcsncmp(cmd, L"edit", 256) == 0){
     if(args.size() > 1){
       to_char(args.at(1), editor->filename, 256); // todo: implement setter
@@ -139,7 +141,7 @@ void Shell::enter(){
       nextLine();
     }
   }else{
-    chrScreen->putString(L"unknown command", TFT_WHITE, TFT_BLACK);
+    chrScreen->putString((char*)L"unknown command", TFT_WHITE, TFT_BLACK);
     nextLine();
   }
 

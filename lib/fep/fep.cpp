@@ -493,10 +493,10 @@ void KanjiFep::draw(){
   chrScreen->setCursor(0, chrScreen->getMaxLine() - 1);
   chrScreen->clearLine(chrScreen->getMaxLine() - 1, TFT_WHITE, TFT_BLACK);
   switch(kanjiMode){
-    case KanjiMode::DIRECT: chrScreen->putString(L"[A]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::KATA:   chrScreen->putString(L"[ア]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::ROME:   chrScreen->putString(L"[あ]", TFT_BLACK, TFT_WHITE); break;
-    case KanjiMode::KANJI:  chrScreen->putString(L"[漢]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::DIRECT: chrScreen->putString((wchar_t*)L"[A]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KATA:   chrScreen->putString((wchar_t*)L"[ア]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::ROME:   chrScreen->putString((wchar_t*)L"[あ]", TFT_BLACK, TFT_WHITE); break;
+    case KanjiMode::KANJI:  chrScreen->putString((wchar_t*)L"[漢]", TFT_BLACK, TFT_WHITE); break;
     case KanjiMode::HENKAN: break;
   }
 

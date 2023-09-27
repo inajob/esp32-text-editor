@@ -12,7 +12,9 @@ using namespace std;
 
 #include <task.h>
 //#include <editor.h>
+#ifdef ESP32
 #include <luashell.h>
+#endif
 #include <chrscreen.h>
 #include <util.h>
 
@@ -28,7 +30,9 @@ class Shell: public Task{
   vector<wchar_t> rawInputs;
   vector<wchar_t> ::iterator rawInputsItr;
   //KanjiEditor* editor;
+#ifdef ESP32
   LuaShell* luaShell;
+#endif
 
   virtual void init();
   virtual bool onkeydown(char key, char c, bool ctrl);

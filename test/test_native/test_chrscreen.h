@@ -25,7 +25,7 @@ void chrscreen_simple(void){
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L'あ', chrScreen.getChar(1, 0), "put/get wide char");
 
   chrScreen.setCursor(0, 0);
-  chrScreen.putString(L"test", 0, 0);
+  chrScreen.putString((wchar_t*)L"test", 0, 0);
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L't', chrScreen.getChar(0, 0), "putString");
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L'e', chrScreen.getChar(1, 0), "putString");
   TEST_ASSERT_EQUAL_INT16_MESSAGE(L's', chrScreen.getChar(2, 0), "putString");
